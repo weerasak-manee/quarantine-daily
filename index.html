@@ -2,666 +2,571 @@
 <html lang="th">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1">
-  <title>ระบบบันทึกข้อมูลกลุ่มด่านฯ|สคร.12</title>
+  <!-- อนุญาตให้ซูมได้ (ช่วยผู้ที่สายตาไม่ดี) -->
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>ระบบบันทึกข้อมูลกลุ่มด่านฯ | สคร.12</title>
+  <meta name="description" content="ระบบบันทึกกิจกรรมและการลาของเจ้าหน้าที่ กลุ่มด่านควบคุมโรคติดต่อระหว่างประเทศ สคร.12">
+  <meta name="theme-color" content="#0F6E56">
 
-  <!-- เชื่อมต่อเซิร์ฟเวอร์ล่วงหน้า ลดเวลารอโหลดฟอนต์/ไลบรารี/รูปภาพ -->
+  <!-- ติดตั้งเป็นแอปบนหน้าจอ (PWA) -->
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="ด่านฯ สคร.12">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
-  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
-  <link rel="preconnect" href="https://lh3.googleusercontent.com">
   <link rel="preconnect" href="https://script.google.com">
   <link rel="preconnect" href="https://script.googleusercontent.com" crossorigin>
-
-  <!-- โหลดเฉพาะน้ำหนักฟอนต์ที่ใช้จริง -->
-  <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <!-- ระบุเวอร์ชันแน่นอน (ไม่ต้อง redirect) และ defer เพื่อไม่ให้บล็อกการแสดงหน้าเว็บ -->
-  <script defer src="https://cdn.jsdelivr.net/npm/sweetalert2@11.14.5/dist/sweetalert2.all.min.js"></script>
 
   <style>
+    /* ===================== สี (สว่าง / มืด) ===================== */
     :root {
-      --primary: #0d9488;
-      --primary-dark: #0f766e;
-      --secondary: #3b82f6;
-      --bg-color: #f3f4f6;
-      --card-bg: rgba(255, 255, 255, 0.95);
-      --text-main: #1f2937;
-      --text-muted: #6b7280;
-      --border-color: #e5e7eb;
-      --radius: 16px;
-      --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      color-scheme: light;
+      --bg: #F3F5F4;
+      --surface: #FFFFFF;
+      --surface-2: #EEF2F0;
+      --text: #17201D;
+      --muted: #5F6B66;
+      --border: #DFE5E2;
+      --primary: #0F6E56;
+      --primary-hover: #0B5A46;
+      --on-primary: #FFFFFF;
+      --primary-soft: #E1F5EE;
+      --primary-text: #085041;
+      --gov-soft: #E6F1FB;   --gov-text: #0C447C;   --gov: #378ADD;
+      --leave-soft: #FAEEDA; --leave-text: #633806; --leave: #EF9F27;
+      --danger: #C0392B;     --danger-soft: #FCEBEB;
+      --warn-text: #854F0B;
+      --shadow: 0 1px 2px rgba(16,24,20,.06), 0 4px 16px rgba(16,24,20,.06);
+      --radius: 14px;
+      --nav-h: 64px;
+      --safe-b: env(safe-area-inset-bottom, 0px);
+    }
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) {
+        color-scheme: dark;
+        --bg: #111513; --surface: #1C211F; --surface-2: #272E2B; --text: #F1F3F2; --muted: #A9B1AD; --border: #343C38;
+        --primary: #5DCAA5; --primary-hover: #7DD6B7; --on-primary: #04342C; --primary-soft: rgba(93,202,165,.15); --primary-text: #9FE1CB;
+        --gov-soft: rgba(55,138,221,.18); --gov-text: #B5D4F4; --leave-soft: rgba(239,159,39,.18); --leave-text: #FAC775;
+        --danger: #F09595; --danger-soft: rgba(226,75,74,.18); --warn-text: #FAC775;
+        --shadow: 0 1px 2px rgba(0,0,0,.4);
+      }
+    }
+    :root[data-theme="dark"] {
+      color-scheme: dark;
+      --bg: #111513; --surface: #1C211F; --surface-2: #272E2B; --text: #F1F3F2; --muted: #A9B1AD; --border: #343C38;
+      --primary: #5DCAA5; --primary-hover: #7DD6B7; --on-primary: #04342C; --primary-soft: rgba(93,202,165,.15); --primary-text: #9FE1CB;
+      --gov-soft: rgba(55,138,221,.18); --gov-text: #B5D4F4; --leave-soft: rgba(239,159,39,.18); --leave-text: #FAC775;
+      --danger: #F09595; --danger-soft: rgba(226,75,74,.18); --warn-text: #FAC775;
+      --shadow: 0 1px 2px rgba(0,0,0,.4);
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-
+    /* ===================== พื้นฐาน ===================== */
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    html { -webkit-text-size-adjust: 100%; }
     body {
-      font-family: 'Prompt', sans-serif;
-      background: linear-gradient(135deg, rgba(13, 148, 136, 0.1), rgba(59, 130, 246, 0.1)),
-                  url('https://lh3.googleusercontent.com/d/14mS7km2MMK9vYvTe8bhEixZO2XFytzZU=w1600-rw') no-repeat center center fixed;
-      background-size: cover;
-      color: var(--text-main);
-      min-height: 100vh;
-      padding: 0 0 30px 0;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
+      font-family: 'Prompt', system-ui, sans-serif; font-size: 15px; line-height: 1.55;
+      background: var(--bg); color: var(--text); min-height: 100vh;
+      padding-bottom: calc(var(--nav-h) + var(--safe-b));
+    }
+    button, input, textarea, select { font: inherit; color: inherit; }
+    button { cursor: pointer; background: none; border: 0; }
+    a { color: inherit; text-decoration: none; }
+    :focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+    .muted { color: var(--muted); }
+    .small { font-size: 13px; }
+    [hidden] { display: none !important; }
+    .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+    /* ===================== แถบบน ===================== */
+    .appbar {
+      position: sticky; top: 0; z-index: 20;
+      background: color-mix(in srgb, var(--surface) 92%, transparent);
+      -webkit-backdrop-filter: saturate(1.4) blur(10px); backdrop-filter: saturate(1.4) blur(10px);
+      border-bottom: 1px solid var(--border);
+      padding: calc(env(safe-area-inset-top, 0px) + 10px) 16px 10px;
+    }
+    .appbar-inner { max-width: 720px; margin: 0 auto; display: flex; align-items: center; gap: 10px; }
+    .appbar img { width: 36px; height: 36px; border-radius: 50%; background: #fff; flex-shrink: 0; }
+    .appbar-title { flex: 1; min-width: 0; line-height: 1.25; }
+    .appbar-title strong { display: block; font-size: 15px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .appbar-title span { display: block; font-size: 12px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .icon-btn {
+      width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center;
+      color: var(--muted); flex-shrink: 0;
+    }
+    .icon-btn:hover { background: var(--surface-2); }
+    .me-btn {
+      display: flex; align-items: center; gap: 6px; height: 36px; padding: 0 12px 0 4px; border-radius: 999px;
+      background: var(--surface-2); font-size: 13px; max-width: 130px;
+    }
+    .me-btn .avatar { width: 28px; height: 28px; border-radius: 50%; background: var(--primary); color: var(--on-primary); display: grid; place-items: center; font-size: 13px; font-weight: 600; flex-shrink: 0; }
+    .me-btn .me-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+    /* ===================== เนื้อหา ===================== */
+    main { max-width: 720px; margin: 0 auto; padding: 16px 16px 24px; }
+    .view { display: none; animation: fade .18s ease-out; }
+    .view.active { display: block; }
+    @keyframes fade { from { transform: translateY(6px); } to { transform: none; } } /* ไม่ใช้ opacity: ถ้าเบราว์เซอร์หยุดแอนิเมชันไว้ เนื้อหาจะยังมองเห็น */
+    .view-head { display: flex; align-items: center; gap: 8px; margin-bottom: 14px; }
+    .view-head h1 { font-size: 20px; font-weight: 600; flex: 1; }
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; box-shadow: var(--shadow); }
+    .card + .card, .section + .section { margin-top: 14px; }
+    .section-label { font-size: 13px; color: var(--muted); font-weight: 500; margin: 0 0 8px; display: flex; align-items: center; gap: 6px; }
+    .section-label .count { margin-left: auto; color: var(--primary-text); font-weight: 500; }
+
+    /* ===================== ฟอร์ม ===================== */
+    .field { margin-bottom: 14px; }
+    .field:last-child { margin-bottom: 0; }
+    .field label, .field .label { display: block; font-size: 13px; font-weight: 500; color: var(--muted); margin-bottom: 6px; }
+    .input, textarea.input, select.input {
+      width: 100%; min-height: 46px; padding: 10px 12px; font-size: 16px; /* 16px กัน iPhone ซูมอัตโนมัติ */
+      background: var(--surface); border: 1px solid var(--border); border-radius: 10px; outline: none;
+      transition: border-color .15s, box-shadow .15s;
+    }
+    textarea.input { resize: vertical; min-height: 72px; }
+    .input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-soft); }
+    /* minmax(0,1fr): ไม่ให้ช่องวันที่ของ iPhone ดันความกว้างจนล้นกรอบ */
+    .grid-2 { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 10px; }
+    .grid-2 .field { min-width: 0; }
+    /* ช่องวันที่/เวลา: iPhone (Safari) มีความกว้างขั้นต่ำและความสูงของตัวเอง ทำให้ซ้อนทับกัน → กำหนดให้เท่ากันทุกเครื่อง */
+    input[type="date"].input, input[type="time"].input {
+      -webkit-appearance: none; appearance: none; display: block;
+      min-width: 0; max-width: 100%; height: 46px; line-height: 24px; text-align: left;
+    }
+    input[type="date"].input::-webkit-date-and-time-value,
+    input[type="time"].input::-webkit-date-and-time-value { text-align: left; margin: 0; }
+    input[type="date"].input::-webkit-calendar-picker-indicator,
+    input[type="time"].input::-webkit-calendar-picker-indicator { opacity: .6; }
+    .grid-2 .field { margin-bottom: 0; }
+    .hint { font-size: 12px; color: var(--muted); margin-top: 6px; }
+    .error-text { font-size: 13px; color: var(--danger); margin-top: 6px; }
+
+    /* ปุ่มชิป */
+    .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+    .chip {
+      display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 6px 12px;
+      border-radius: 999px; border: 1px solid var(--border); background: var(--surface);
+      font-size: 14px; line-height: 1.3; text-align: left; transition: background .12s, border-color .12s;
+    }
+    .chip:hover { border-color: var(--primary); }
+    .chip.on { background: var(--primary-soft); border-color: var(--primary); color: var(--primary-text); font-weight: 500; }
+    .chip.warn { border-style: dashed; color: var(--warn-text); }
+    .chip .fa-xmark { font-size: 12px; opacity: .7; }
+    .chip-btn { font-size: 13px; color: var(--primary-text); padding: 6px 10px; border-radius: 8px; white-space: nowrap; }
+    .chip-btn:hover { background: var(--primary-soft); }
+
+    /* แถบเลือก (segmented) */
+    .seg { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
+    .seg button { flex: 1 1 auto; min-height: 38px; padding: 6px 10px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface); font-size: 14px; }
+    .seg button.on { background: var(--primary-soft); border-color: var(--primary); color: var(--primary-text); font-weight: 500; }
+
+    /* ตัวเลือกรายชื่อ */
+    .picker .pk-sel { display: flex; flex-wrap: wrap; gap: 6px; min-height: 36px; align-items: center; margin-bottom: 10px; }
+    .picker .pk-tools { display: flex; gap: 4px; align-items: center; margin-bottom: 10px; }
+    .search { position: relative; flex: 1; }
+    .search i { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--muted); font-size: 14px; pointer-events: none; }
+    .search .input { padding-left: 36px; min-height: 42px; }
+    .picker .pk-opts { display: flex; flex-wrap: wrap; gap: 6px; max-height: 232px; overflow-y: auto; padding: 2px; overscroll-behavior: contain; }
+    .picker .pk-opts .chip { font-size: 13.5px; min-height: 34px; padding: 5px 11px; }
+
+    /* ประเภทการลา */
+    .type-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+    .type-btn {
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+      min-height: 70px; padding: 8px 4px; border-radius: 12px; border: 1px solid var(--border); background: var(--surface);
+      font-size: 13px; text-align: center; line-height: 1.25;
+    }
+    .type-btn .emo { font-size: 22px; line-height: 1; }
+    .type-btn.on { background: var(--primary-soft); border-color: var(--primary); color: var(--primary-text); font-weight: 500; }
+
+    /* แถบบันทึกด้านล่าง */
+    .submit-bar {
+      position: sticky; bottom: calc(var(--nav-h) + var(--safe-b) + 8px); z-index: 5; margin-top: 14px;
+      background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 10px 10px 10px 14px;
+      display: flex; align-items: center; gap: 10px; box-shadow: 0 6px 24px rgba(0,0,0,.12);
+    }
+    .submit-bar .summary { flex: 1; min-width: 0; font-size: 13px; color: var(--muted); line-height: 1.35; }
+    .submit-bar .summary strong { color: var(--text); font-weight: 500; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 46px; padding: 0 18px;
+      border-radius: 12px; font-weight: 500; font-size: 15px; white-space: nowrap; transition: background .15s, transform .08s;
+    }
+    .btn:active { transform: scale(.98); }
+    .btn-primary { background: var(--primary); color: var(--on-primary); }
+    .btn-primary:hover { background: var(--primary-hover); }
+    .btn-primary[disabled] { opacity: .7; cursor: progress; }
+    .btn-ghost { border: 1px solid var(--border); background: var(--surface); }
+    .btn-danger { background: var(--danger-soft); color: var(--danger); }
+    .btn-block { width: 100%; }
+
+    /* ===================== หน้า "วันนี้" ===================== */
+    .hello { font-size: 13px; color: var(--muted); }
+    .hello strong { display: block; font-size: 20px; color: var(--text); font-weight: 600; }
+    .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 14px 0; }
+    .stat { border-radius: 12px; padding: 12px 8px; text-align: center; border: 2px solid transparent; }
+    .stat b { display: block; font-size: 26px; font-weight: 600; line-height: 1.15; }
+    .stat span { font-size: 12.5px; }
+    .stat.normal { background: var(--primary-soft); color: var(--primary-text); }
+    .stat.gov { background: var(--gov-soft); color: var(--gov-text); }
+    .stat.other { background: var(--leave-soft); color: var(--leave-text); }
+    .stat[aria-pressed="true"] { border-color: currentColor; }
+    .me-status { display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-radius: 12px; background: var(--surface-2); font-size: 14px; margin-bottom: 14px; }
+    .quick { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 18px; }
+    .quick .btn { min-height: 52px; }
+    .cat { padding: 10px 0; border-top: 1px solid var(--border); }
+    .cat:first-child { border-top: 0; padding-top: 0; }
+    .cat-head { font-size: 14px; font-weight: 500; margin-bottom: 6px; display: flex; gap: 6px; align-items: center; }
+    .cat-head .n { margin-left: auto; color: var(--muted); font-weight: 400; font-size: 13px; }
+    .name-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+    .name-chip { font-size: 12.5px; padding: 3px 10px; border-radius: 999px; background: var(--surface-2); }
+    .name-chip.me { background: var(--primary-soft); color: var(--primary-text); font-weight: 500; }
+    .event { display: flex; gap: 12px; padding: 12px 0; border-top: 1px solid var(--border); }
+    .event:first-child { border-top: 0; padding-top: 0; }
+    .event:last-child { padding-bottom: 0; }
+    .event time { width: 50px; flex-shrink: 0; font-weight: 600; font-size: 14px; color: var(--primary-text); }
+    .event .body { flex: 1; min-width: 0; }
+    .event .title { font-weight: 500; }
+    .event .meta { font-size: 13px; color: var(--muted); }
+    .event .desc { font-size: 13px; color: var(--muted); margin-top: 2px; white-space: pre-line; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+    .event .join { display: inline-flex; align-items: center; gap: 6px; margin-top: 6px; font-size: 13px; padding: 5px 12px; border-radius: 8px; background: var(--primary); color: var(--on-primary); text-decoration: none; }
+    .empty { text-align: center; padding: 22px 10px; color: var(--muted); font-size: 14px; }
+    .empty i { font-size: 26px; display: block; margin-bottom: 8px; opacity: .6; }
+    .setup-card { display: flex; gap: 12px; align-items: center; background: var(--primary-soft); color: var(--primary-text); border-radius: 12px; padding: 12px 14px; margin-bottom: 14px; font-size: 14px; }
+    .setup-card .btn { min-height: 38px; padding: 0 12px; font-size: 14px; }
+    .skeleton { background: linear-gradient(90deg, var(--surface-2), var(--border), var(--surface-2)); background-size: 200% 100%; animation: sk 1.2s infinite; border-radius: 8px; }
+    @keyframes sk { to { background-position: -200% 0; } }
+
+    /* ===================== หน้า "ประวัติ" ===================== */
+    .filters { display: flex; gap: 6px; overflow-x: auto; margin: 10px -16px 12px; padding: 0 16px; scrollbar-width: none; }
+    .filters::-webkit-scrollbar { display: none; }
+    .filters .chip { flex-shrink: 0; }
+    .group-label { font-size: 12.5px; color: var(--muted); font-weight: 500; margin: 14px 2px 6px; }
+    .rec-list { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+    .rec { display: flex; gap: 12px; align-items: center; width: 100%; padding: 12px 14px; text-align: left; border-top: 1px solid var(--border); }
+    .rec:first-child { border-top: 0; }
+    .rec:hover { background: var(--surface-2); }
+    .rec .bar { width: 4px; align-self: stretch; border-radius: 4px; background: var(--primary); flex-shrink: 0; }
+    .rec.leave .bar { background: var(--leave); }
+    .rec.gov .bar { background: var(--gov); }
+    .rec .body { flex: 1; min-width: 0; }
+    .rec .title { font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .rec .meta { font-size: 12.5px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .rec .fa-chevron-right { color: var(--muted); font-size: 12px; }
+    .badge { display: inline-block; font-size: 11.5px; padding: 2px 8px; border-radius: 6px; font-weight: 500; }
+    .badge.activity { background: var(--primary-soft); color: var(--primary-text); }
+    .badge.leave { background: var(--leave-soft); color: var(--leave-text); }
+    .badge.gov { background: var(--gov-soft); color: var(--gov-text); }
+    .status-line { font-size: 12px; color: var(--muted); }
+
+    /* ===================== เมนูด้านล่าง ===================== */
+    .bottom-nav {
+      position: fixed; left: 0; right: 0; bottom: 0; z-index: 30;
+      background: var(--surface); border-top: 1px solid var(--border);
+      padding-bottom: var(--safe-b);
+    }
+    .bottom-nav .inner { max-width: 560px; margin: 0 auto; display: grid; grid-template-columns: repeat(4, 1fr); height: var(--nav-h); }
+    .nav-btn { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; font-size: 11.5px; color: var(--muted); position: relative; }
+    .nav-btn i { font-size: 19px; }
+    .nav-btn.active { color: var(--primary); font-weight: 500; }
+    .nav-btn.active::before { content: ''; position: absolute; top: 0; left: 30%; right: 30%; height: 3px; border-radius: 0 0 3px 3px; background: var(--primary); }
+
+    /* ===================== แผ่นเลื่อนขึ้น (bottom sheet) ===================== */
+    .sheet-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,.45); z-index: 50; display: flex; align-items: flex-end; justify-content: center; animation: bd .15s ease-out; }
+    @keyframes bd { from { opacity: 0; } }
+    .sheet {
+      background: var(--surface); width: 100%; max-width: 560px; max-height: 92vh; display: flex; flex-direction: column;
+      border-radius: 20px 20px 0 0; animation: up .22s cubic-bezier(.2,.8,.2,1); padding-bottom: var(--safe-b);
+    }
+    @keyframes up { from { transform: translateY(40px); } }
+    @media (min-width: 640px) { .sheet-backdrop { align-items: center; } .sheet { border-radius: 20px; max-height: 86vh; } }
+    .sheet-head { display: flex; align-items: center; gap: 8px; padding: 14px 16px 10px; border-bottom: 1px solid var(--border); }
+    .sheet-head h2 { flex: 1; font-size: 17px; font-weight: 600; }
+    .sheet-body { padding: 16px; overflow-y: auto; overscroll-behavior: contain; }
+    .sheet-foot { display: flex; gap: 10px; padding: 12px 16px 14px; border-top: 1px solid var(--border); }
+    .sheet-foot .btn { flex: 1; }
+    .detail-row { display: flex; gap: 10px; padding: 8px 0; font-size: 14px; }
+    .detail-row i { width: 18px; color: var(--muted); margin-top: 4px; text-align: center; }
+    .detail-row div { flex: 1; min-width: 0; white-space: pre-line; overflow-wrap: anywhere; }
+    .result-list { font-size: 14px; display: flex; flex-direction: column; gap: 4px; }
+
+    /* ===================== ข้อความแจ้ง (toast) ===================== */
+    .toast-wrap { position: fixed; left: 0; right: 0; bottom: calc(var(--nav-h) + var(--safe-b) + 12px); z-index: 60; display: flex; flex-direction: column; align-items: center; gap: 8px; pointer-events: none; padding: 0 16px; }
+    .toast {
+      pointer-events: auto; max-width: 480px; width: 100%; display: flex; gap: 10px; align-items: flex-start;
+      background: #1C211F; color: #F1F3F2; padding: 12px 14px; border-radius: 12px; font-size: 14px;
+      box-shadow: 0 8px 28px rgba(0,0,0,.25); animation: up .2s ease-out;
+    }
+    :root[data-theme="dark"] .toast { background: #F1F3F2; color: #17201D; }
+    .toast i { margin-top: 3px; }
+    .toast.success i { color: #5DCAA5; }
+    .toast.error i { color: #F09595; }
+
+    .footer { text-align: center; font-size: 12px; color: var(--muted); padding: 24px 0 8px; }
+
+    @media (max-width: 340px) {
+      .type-grid { grid-template-columns: repeat(2, 1fr); }
+      .me-btn .me-name { display: none; }
+      .me-btn { padding-right: 4px; }
     }
 
-    /* ===================== HEADER ===================== */
-    .main-header {
-      width: 100%;
-      background: linear-gradient(160deg, #ffffff 0%, #f0fdfb 55%, #e6f7f5 100%);
-      position: relative;
-      overflow: hidden;
-      margin-bottom: 24px;
-      box-shadow: 0 4px 24px rgba(13, 148, 136, 0.13);
+    /* ===================== จอคอมพิวเตอร์ / โน้ตบุ๊ก (กว้าง 1024px ขึ้นไป) ===================== */
+    .nav-brand, .rec .extra { display: none; }
+    @media (min-width: 1024px) {
+      :root { --side-w: 232px; }
+      body { padding-bottom: 0; padding-left: var(--side-w); }
+      .appbar { padding-left: 32px; padding-right: 32px; }
+      .appbar-inner, main { max-width: 1160px; }
+      .appbar img { display: none; }
+      main { padding: 24px 32px 40px; }
+      .view-head h1, .hello strong { font-size: 24px; }
+
+      /* เมนูย้ายไปด้านซ้าย */
+      .bottom-nav { top: 0; right: auto; width: var(--side-w); border-top: 0; border-right: 1px solid var(--border); padding: 0; }
+      .bottom-nav .inner { height: 100%; max-width: none; display: flex; flex-direction: column; gap: 4px; padding: 16px 12px; }
+      .nav-brand { display: flex; align-items: center; gap: 10px; padding: 4px 8px 18px; margin-bottom: 8px; border-bottom: 1px solid var(--border); }
+      .nav-brand img { width: 40px; height: 40px; border-radius: 50%; background: #fff; }
+      .nav-brand strong { display: block; font-size: 15px; font-weight: 600; line-height: 1.2; }
+      .nav-brand span { font-size: 12px; color: var(--muted); }
+      .nav-btn { flex-direction: row; justify-content: flex-start; gap: 12px; height: 46px; padding: 0 14px; border-radius: 10px; font-size: 15px; }
+      .nav-btn i { font-size: 17px; width: 20px; text-align: center; }
+      .nav-btn:hover { background: var(--surface-2); }
+      .nav-btn.active { background: var(--primary-soft); color: var(--primary-text); }
+      .nav-btn.active::before { display: none; }
+
+      /* หน้า "วันนี้": ซ้าย = กิจกรรม, ขวา = สรุปเจ้าหน้าที่ */
+      .today-grid {
+        display: grid; grid-template-columns: minmax(0, 1.65fr) minmax(300px, 1fr); column-gap: 24px; align-items: start;
+        grid-template-areas: "quick setup" "events me" "events stats" "events staff";
+        grid-template-rows: auto auto auto 1fr;
+      }
+      .today-grid > .quick { grid-area: quick; }
+      .today-grid > .setup-card { grid-area: setup; }
+      .today-grid > .me-status { grid-area: me; }
+      .today-grid > .stats { grid-area: stats; margin-top: 0; }
+      .today-grid > .sec-events { grid-area: events; margin-top: 0; }
+      .today-grid > .sec-staff { grid-area: staff; margin-top: 0; position: sticky; top: 84px; }
+      .sec-staff .card { max-height: calc(100vh - 360px); min-height: 160px; overflow-y: auto; }
+      .stat b { font-size: 24px; }
+
+      /* หน้าบันทึก: แบ่งซ้ายขวา */
+      .form-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+      .form-grid > .card { margin-top: 0 !important; }
+      .act-grid { grid-template-areas: "info people" "date people"; }
+      .leave-grid { grid-template-areas: "people info" "people date"; }
+      .fg-info { grid-area: info; } .fg-people { grid-area: people; } .fg-date { grid-area: date; }
+      .form-grid .picker .pk-opts { max-height: none; }
+      .submit-bar { bottom: 16px; margin-top: 16px; }
+      .submit-bar .btn { min-width: 160px; }
+
+      /* ประวัติ: แสดงรายชื่อ/หมายเหตุเพิ่ม */
+      .rec { padding: 12px 18px; }
+      .rec .extra { display: block; font-size: 12.5px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 2px; }
+      .filters { margin-left: 0; margin-right: 0; padding: 0; }
+      .toast-wrap { bottom: 24px; padding-left: var(--side-w); }
     }
-
-    /* Top shimmer bar */
-    .main-header::before {
-      content: '';
-      position: absolute;
-      top: 0; left: 0; right: 0;
-      height: 5px;
-      background: linear-gradient(90deg, #0d9488, #3b82f6, #0dcaf0, #3b82f6, #0d9488);
-      background-size: 300% 100%;
-      animation: shimmer 4s infinite linear;
-    }
-
-    /* Bottom accent line */
-    .main-header::after {
-      content: '';
-      position: absolute;
-      bottom: 0; left: 0; right: 0;
-      height: 3px;
-      background: linear-gradient(90deg, #0d9488 0%, #3b82f6 50%, #0d9488 100%);
-      opacity: 0.5;
-    }
-
-    @keyframes shimmer {
-      0%   { background-position: 300% 0; }
-      100% { background-position: -300% 0; }
-    }
-
-    .header-inner {
-      max-width: 850px;
-      margin: auto;
-      padding: 2.2rem 1.5rem 1.8rem;
-      text-align: center;
-      position: relative;
-      z-index: 1;
-    }
-
-    /* Decorative circles */
-    .header-inner::before,
-    .header-inner::after {
-      content: '';
-      position: absolute;
-      border-radius: 50%;
-      opacity: 0.06;
-      pointer-events: none;
-    }
-    .header-inner::before {
-      width: 260px; height: 260px;
-      background: var(--primary);
-      top: -60px; left: -60px;
-    }
-    .header-inner::after {
-      width: 200px; height: 200px;
-      background: var(--secondary);
-      bottom: -50px; right: -40px;
-    }
-
-    .logo-wrapper {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin-bottom: 1.3rem;
-    }
-
-    .logo-img-wrap {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      width: 100px;
-      height: 100px;
-      transition: transform 0.25s ease;
-      padding: 4px;
-    }
-
-    .logo-img-wrap:hover {
-      transform: scale(1.07) translateY(-3px);
-    }
-
-    .logo-img-wrap img {
-      width: 92px;
-      height: 92px;
-      object-fit: contain;
-      filter: drop-shadow(0 2px 6px rgba(13,148,136,0.15));
-    }
-
-    .logo-divider {
-      display: flex;
-      align-items: center;
-      margin: 0 22px;
-      gap: 6px;
-    }
-
-    .logo-divider .line {
-      width: 40px;
-      height: 2px;
-      background: linear-gradient(90deg, transparent, var(--primary), transparent);
-    }
-
-    .logo-divider .dot {
-      width: 10px;
-      height: 10px;
-      background: linear-gradient(135deg, var(--primary), var(--secondary));
-      border-radius: 50%;
-      box-shadow: 0 0 0 3px rgba(13,148,136,0.18);
-      animation: pulse-dot 2.5s ease-in-out infinite;
-    }
-
-    @keyframes pulse-dot {
-      0%, 100% { box-shadow: 0 0 0 3px rgba(13,148,136,0.18); }
-      50%       { box-shadow: 0 0 0 7px rgba(13,148,136,0.08); }
-    }
-
-    .header-title {
-      color: #0c4a42;
-      font-size: clamp(1.1rem, 3.5vw, 1.7rem);
-      font-weight: 700;
-      letter-spacing: 0.4px;
-      line-height: 1.45;
-      text-shadow: 0 1px 3px rgba(13,148,136,0.10);
-      margin-bottom: 0.3rem;
-    }
-
-    .header-subtitle {
-      color: #4a9b8e;
-      font-size: clamp(0.82rem, 2vw, 0.97rem);
-      font-weight: 400;
-      letter-spacing: 0.3px;
-      margin-bottom: 0.6rem;
-    }
-
-    .header-badges {
-      display: flex;
-      justify-content: center;
-      gap: 10px;
-      flex-wrap: wrap;
-      margin-top: 8px;
-    }
-
-    .header-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 5px;
-      padding: 4px 14px;
-      border-radius: 20px;
-      font-size: 0.77rem;
-      font-weight: 500;
-      letter-spacing: 0.4px;
-    }
-
-    .badge-teal  { background: linear-gradient(135deg, #0d9488, #0f766e); color: #fff; box-shadow: 0 2px 8px rgba(13,148,136,0.25); }
-    .badge-blue  { background: linear-gradient(135deg, #3b82f6, #2563eb); color: #fff; box-shadow: 0 2px 8px rgba(59,130,246,0.25); }
-
-    /* ===================== MAIN CONTAINER ===================== */
-    .main-container {
-      background-color: var(--card-bg);
-      /* เอา backdrop-filter: blur ออก — พื้นหลังการ์ดทึบ 95% อยู่แล้ว แต่ blur ทำให้มือถือเลื่อนหน้าจอกระตุก */
-      border-radius: var(--radius);
-      border: 1px solid rgba(255, 255, 255, 0.5);
-      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-      max-width: 850px;
-      width: calc(100% - 20px);
-      overflow: hidden;
-      margin-bottom: 30px;
-    }
-
-    /* ===================== TABS ===================== */
-    .tab-menu {
-      display: flex;
-      padding: 16px 20px 0;
-      gap: 10px;
-      flex-wrap: wrap;
-      background: #f8fafc;
-      border-bottom: 1px solid var(--border-color);
-    }
-
-    .tab-btn {
-      flex: 1;
-      min-width: 180px;
-      background-color: transparent;
-      border: none;
-      border-bottom: 3px solid transparent;
-      padding: 12px 10px 14px;
-      font-size: 14px;
-      font-family: 'Prompt', sans-serif;
-      font-weight: 600;
-      color: var(--text-muted);
-      cursor: pointer;
-      transition: var(--transition);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      border-radius: 8px 8px 0 0;
-    }
-
-    .tab-btn:hover { background-color: #f0fdfb; color: var(--primary); }
-
-    .tab-btn.active {
-      background-color: #ffffff;
-      border-bottom-color: var(--primary);
-      color: var(--primary-dark);
-    }
-
-    .tab-btn .tab-icon {
-      width: 30px; height: 30px;
-      background: rgba(13,148,136,0.08);
-      border-radius: 8px;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 14px;
-      transition: var(--transition);
-    }
-
-    .tab-btn.active .tab-icon { background: rgba(13,148,136,0.15); }
-
-    .tab-content {
-      display: none;
-      padding: 24px 24px 36px;
-      animation: slideFadeUp 0.4s ease-out;
-    }
-
-    @keyframes slideFadeUp {
-      from { opacity: 0; transform: translateY(12px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-
-    /* ===================== FORMS ===================== */
-    .form-section {
-      background: #ffffff;
-      border: 1px solid var(--border-color);
-      border-radius: 12px;
-      padding: 22px 20px;
-      margin-bottom: 18px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.03);
-      width: 100%;
-    }
-
-    .section-title {
-      font-size: 14px;
-      font-weight: 600;
-      color: var(--primary-dark);
-      text-transform: uppercase;
-      letter-spacing: 0.6px;
-      margin-bottom: 16px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .section-title::after {
-      content: '';
-      flex: 1;
-      height: 1px;
-      background: linear-gradient(90deg, var(--border-color), transparent);
-    }
-
-    .form-group { margin-bottom: 18px; width: 100%; }
-    .form-row   { display: flex; gap: 16px; flex-wrap: wrap; width: 100%; }
-    .form-col   { flex: 1; min-width: 180px; max-width: 100%; }
-
-    label {
-      display: flex; align-items: center;
-      font-weight: 500; color: var(--text-main);
-      font-size: 14px; margin-bottom: 7px;
-    }
-
-    label i { color: var(--primary); margin-right: 7px; font-size: 1rem; width: 18px; text-align: center; }
-
-    input[type="text"], input[type="date"], input[type="time"], textarea, select {
-      width: 100%; max-width: 100%;
-      padding: 11px 14px;
-      border: 1.5px solid var(--border-color);
-      border-radius: 10px;
-      font-size: 16px;
-      font-family: 'Prompt', sans-serif;
-      background-color: #f9fafb;
-      transition: var(--transition);
-      box-sizing: border-box;
-      display: block;
-      color: var(--text-main);
-    }
-
-    input:focus, textarea:focus, select:focus {
-      outline: none;
-      border-color: var(--primary);
-      background-color: #ffffff;
-      box-shadow: 0 0 0 4px rgba(13, 148, 136, 0.10);
-    }
-
-    /* Arrow between date rows */
-    .date-arrow {
-      text-align: center;
-      color: var(--text-muted);
-      margin: 8px 0;
-      font-size: 13px;
-    }
-
-    /* ===================== STAFF GRID ===================== */
-    .staff-container {
-      background: #f8fafc;
-      border-radius: 10px;
-      padding: 14px;
-      border: 1px solid var(--border-color);
-    }
-
-    .staff-actions { display: flex; gap: 10px; margin-bottom: 13px; }
-
-    .action-btn {
-      background: white; border: 1px solid var(--border-color);
-      padding: 7px 13px; border-radius: 8px;
-      font-family: 'Prompt'; font-size: 13px; cursor: pointer;
-      transition: var(--transition); display: flex; align-items: center; gap: 5px; font-weight: 500;
-    }
-    .action-btn:hover { background: #f1f5f9; border-color: #cbd5e1; }
-
-    .staff-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
-      gap: 10px; max-height: 270px; overflow-y: auto; padding-right: 4px;
-    }
-
-    .staff-item {
-      background: #ffffff; border: 1.5px solid var(--border-color);
-      border-radius: 10px; padding: 11px 12px; cursor: pointer;
-      display: flex; align-items: center; gap: 11px;
-      transition: var(--transition); font-size: 14px; font-weight: 500;
-    }
-    .staff-item:hover { border-color: var(--primary); transform: translateY(-2px); box-shadow: 0 4px 10px rgba(13,148,136,0.08); }
-    .staff-item.selected { background: var(--primary); border-color: var(--primary); color: white; }
-
-    .staff-checkbox {
-      width: 20px; height: 20px; border: 2px solid #cbd5e1; border-radius: 6px;
-      background: #fff; display: flex; align-items: center; justify-content: center;
-      flex-shrink: 0; transition: var(--transition);
-    }
-    .staff-item.selected .staff-checkbox { border-color: white; background: white; }
-    .staff-item.selected .staff-checkbox::after {
-      content: "\f00c"; font-family: "Font Awesome 6 Free"; font-weight: 900;
-      color: var(--primary); font-size: 11px;
-    }
-
-    /* ===================== ACTIVITY GRID ===================== */
-    .activity-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; }
-
-    .activity-item {
-      background: #ffffff; border: 1.5px solid var(--border-color);
-      border-radius: 12px; padding: 14px 8px; cursor: pointer;
-      text-align: center; position: relative; transition: var(--transition);
-    }
-    .activity-item:hover { border-color: var(--primary); background: #f0fdfa; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(13,148,136,0.10); }
-    .activity-item input[type="radio"] { position: absolute; opacity: 0; }
-    .activity-item.selected { border-color: var(--primary); background: #f0fdfa; box-shadow: 0 0 0 2px rgba(13,148,136,0.2); }
-    .activity-item.selected .activity-content { color: var(--primary-dark); font-weight: 600; }
-    .activity-icon { font-size: 26px; display: block; margin-bottom: 7px; transition: var(--transition); }
-    .activity-item.selected .activity-icon { transform: scale(1.18); }
-    .activity-text { font-size: 13px; }
-
-    /* ===================== BUTTONS ===================== */
-    .submit-btn {
-      background: linear-gradient(135deg, var(--primary), var(--secondary));
-      color: #ffffff; padding: 15px; border: none; border-radius: 12px;
-      cursor: pointer; width: 100%; font-size: 1.05rem; font-family: 'Prompt', sans-serif;
-      font-weight: 600; letter-spacing: 0.5px; transition: var(--transition);
-      box-shadow: 0 4px 18px rgba(13, 148, 136, 0.28);
-      display: flex; align-items: center; justify-content: center; gap: 10px;
-    }
-    .submit-btn:hover { transform: translateY(-3px); box-shadow: 0 8px 28px rgba(13, 148, 136, 0.38); }
-
-    /* ===================== BADGES ===================== */
-    .type-badge {
-      display: inline-block; padding: 3px 10px; border-radius: 20px;
-      font-size: 11px; font-weight: 600; color: white; margin-bottom: 5px;
-    }
-    .badge-activity { background: linear-gradient(135deg, #0d9488, #0f766e); }
-    .badge-leave    { background: linear-gradient(135deg, #f59e0b, #d97706); }
-
-    /* ===================== FOOTER ===================== */
-    footer {
-      text-align: center; padding: 18px;
-      font-size: 0.83rem; color: var(--text-muted);
-      background: rgba(248,250,251,0.7);
-      border-top: 1px solid var(--border-color);
-    }
-
-    /* ===================== PERFORMANCE ===================== */
-    /* มือถือ/แท็บเล็ต: background-attachment: fixed ทำให้ต้องวาดพื้นหลังใหม่ทุกครั้งที่เลื่อนจอ */
-    @media (hover: none), (max-width: 1024px) {
-      body { background-attachment: scroll; }
-    }
-    /* ผู้ใช้ที่ตั้งค่าลดการเคลื่อนไหว: ปิดแอนิเมชันตกแต่ง (ยังคงไอคอนหมุนตอนโหลดไว้) */
-    @media (prefers-reduced-motion: reduce) {
-      .main-header::before, .logo-divider .dot, .tab-content { animation: none; }
-      .staff-item, .activity-item, .submit-btn, .tab-btn, .logo-img-wrap { transition: none; }
-    }
-    /* ข้ามการวาดรายการที่ยังไม่อยู่ในจอ (รายการแก้ไขย้อนหลัง 100 รายการ) */
-    .edit-list-item { content-visibility: auto; contain-intrinsic-size: auto 96px; }
-
-    /* ===================== RESPONSIVE ===================== */
-    @media (max-width: 640px) {
-      .logo-img-wrap { width: 78px; height: 78px; }
-      .logo-img-wrap img { width: 62px; height: 62px; }
-      .logo-divider .line { width: 24px; }
-      .header-inner { padding: 1.5rem 1rem 1.3rem; }
-      .tab-menu { flex-direction: column; padding: 12px 14px 0; }
-      .tab-btn { min-width: 100%; border-radius: 8px; border-bottom: none; border-left: 3px solid transparent; }
-      .tab-btn.active { border-left-color: var(--primary); border-bottom-color: transparent; }
-      .tab-content { padding: 14px 14px 28px; }
-      .form-section { padding: 16px 14px; }
-      .form-row { flex-direction: column; gap: 14px; }
-      .form-col { min-width: 100%; }
-      .activity-grid { grid-template-columns: repeat(2, 1fr); }
-      .staff-grid { grid-template-columns: 1fr; }
-    }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
   </style>
 </head>
 <body>
-
-  <!-- ==================== HEADER ==================== -->
-  <header class="main-header" style="width:100%;">
-    <div class="header-inner">
-      <div class="logo-wrapper">
-        <div class="logo-img-wrap">
-          <img src="https://lh3.googleusercontent.com/d/1NW6ls_1MRz8MCI0NhsH7IWyOiaq-yhQS=s184-rw" alt="Logo กรมควบคุมโรค" width="92" height="92" fetchpriority="high" decoding="async">
-        </div>
-        <div class="logo-divider">
-          <div class="line"></div>
-          <div class="dot"></div>
-          <div class="line"></div>
-        </div>
-        <div class="logo-img-wrap">
-          <img src="https://lh3.googleusercontent.com/d/1G8Tczg6khRru0l84RSKE0qnj7clQfaQL=s184-rw" alt="Logo สคร.12" width="92" height="92" fetchpriority="high" decoding="async">
-        </div>
+  <!-- ==================== แถบบน ==================== -->
+  <header class="appbar">
+    <div class="appbar-inner">
+      <img src="https://lh3.googleusercontent.com/d/1G8Tczg6khRru0l84RSKE0qnj7clQfaQL=s96-rw" alt="สคร.12" width="36" height="36" decoding="async">
+      <div class="appbar-title">
+        <strong>ระบบบันทึกข้อมูลกลุ่มด่านฯ</strong>
+        <span id="appbarDate">สคร.12</span>
       </div>
-      <h2 class="header-title">กลุ่มด่านควบคุมโรคติดต่อระหว่างประเทศ</h2>
-      <p class="header-subtitle">สำนักงานป้องกันควบคุมโรคที่ 12 จังหวัดสงขลา</p>
-      <div class="header-badges">
-        <span class="header-badge badge-teal"><i class="fas fa-shield-virus"></i> ระบบบันทึกข้อมูลเจ้าหน้าที่</span>
-        <span class="header-badge badge-blue"><i class="fas fa-anchor"></i> กลุ่มด่านควบคุมโรคฯ สคร.12</span>
-      </div>
+      <button type="button" class="icon-btn" id="themeBtn" aria-label="เปลี่ยนโหมดสี" title="เปลี่ยนโหมดสี"><i class="fa-solid fa-circle-half-stroke"></i></button>
+      <button type="button" class="me-btn" id="meBtn" aria-label="เลือกชื่อของฉัน">
+        <span class="avatar" id="meAvatar"><i class="fa-solid fa-user" style="font-size:12px"></i></span>
+        <span class="me-name" id="meName">เลือกชื่อ</span>
+      </button>
     </div>
   </header>
 
-  <!-- ==================== MAIN CARD ==================== -->
-  <div class="main-container">
-
-    <!-- TABS -->
-    <div class="tab-menu">
-      <button class="tab-btn active" onclick="openTab(event, 'ActivityTab')">
-        <span class="tab-icon"><i class="fas fa-edit"></i></span>
-        บันทึกกิจกรรมประจำวัน
-      </button>
-      <button class="tab-btn" onclick="openTab(event, 'LeaveTab')">
-        <span class="tab-icon"><i class="fas fa-calendar-alt"></i></span>
-        บันทึกการลา / ไปราชการ
-      </button>
-      <button class="tab-btn" onclick="openTab(event, 'EditTab'); showRecentActivities();">
-        <span class="tab-icon"><i class="fas fa-history"></i></span>
-        แก้ไขข้อมูลย้อนหลัง
-      </button>
-    </div>
-
-    <!-- ============ TAB 1: กิจกรรม ============ -->
-    <div id="ActivityTab" class="tab-content" style="display: block;">
-      <form id="activityForm">
-
-        <div class="form-section">
-          <div class="section-title"><i class="fas fa-clipboard-list" style="color:var(--primary);"></i> ข้อมูลกิจกรรม</div>
-          <div class="form-group">
-            <label for="name1"><i class="fas fa-clipboard-list"></i> ชื่อกิจกรรม</label>
-            <input type="text" id="name1" placeholder="เช่น ประชุม, อบรม, ตรวจเยี่ยม" required>
-          </div>
-          <div class="form-group" style="margin-bottom:0;">
-            <label for="name2"><i class="fas fa-align-left"></i> รายละเอียดกิจกรรม</label>
-            <textarea id="name2" rows="2" placeholder="อธิบายรายละเอียดของกิจกรรม" required></textarea>
-          </div>
-        </div>
-
-        <div class="form-section">
-          <div class="section-title"><i class="fas fa-users" style="color:var(--primary);"></i> ผู้รับผิดชอบ / ผู้เกี่ยวข้อง <span id="activitySelectedCount" style="color: var(--secondary); font-size:13px; margin-left:8px; font-weight:600;"></span></div>
-          <div class="staff-container">
-            <input type="text" id="activityStaffSearch" placeholder="🔍 ค้นหาชื่อผู้เกี่ยวข้อง..." style="margin-bottom: 13px;">
-            <div class="staff-actions">
-              <button type="button" class="action-btn" onclick="selectAllActivityStaff()"><i class="fas fa-check-double" style="color:var(--primary);"></i> เลือกทั้งหมด</button>
-              <button type="button" class="action-btn" onclick="clearAllActivityStaff()"><i class="fas fa-times" style="color:#ef4444;"></i> ยกเลิกทั้งหมด</button>
-            </div>
-            <div class="staff-grid" id="activityStaffGrid"></div>
-          </div>
-        </div>
-
-        <div class="form-section">
-          <div class="section-title"><i class="fas fa-calendar-alt" style="color:var(--primary);"></i> ช่วงเวลา</div>
-          <div class="form-row">
-            <div class="form-col">
-              <label for="date"><i class="fas fa-calendar-plus"></i> วันที่เริ่มต้น</label>
-              <input type="date" id="date" required>
-            </div>
-            <div class="form-col">
-              <label for="time"><i class="fas fa-clock"></i> เวลาเริ่มต้น</label>
-              <input type="time" id="time" required>
-            </div>
-          </div>
-          <div class="date-arrow"><i class="fas fa-arrow-down"></i></div>
-          <div class="form-row">
-            <div class="form-col">
-              <label for="endDate"><i class="fas fa-calendar-check"></i> วันที่สิ้นสุด</label>
-              <input type="date" id="endDate" required>
-            </div>
-            <div class="form-col">
-              <label for="endTime"><i class="fas fa-stopwatch"></i> เวลาสิ้นสุด</label>
-              <input type="time" id="endTime" required>
-            </div>
-          </div>
-        </div>
-
-        <button type="button" class="submit-btn" onclick="submitActivity()">
-          <i class="fas fa-paper-plane"></i> บันทึกข้อมูลกิจกรรม
-        </button>
-      </form>
-    </div>
-
-    <!-- ============ TAB 2: การลา ============ -->
-    <div id="LeaveTab" class="tab-content">
-      <form id="leaveForm">
-
-        <div class="form-section">
-          <div class="section-title"><i class="fas fa-calendar-alt" style="color:var(--primary);"></i> ระบุช่วงวันที่</div>
-          <div class="form-row" style="align-items: center;">
-            <div class="form-col"><input type="date" id="leaveStartDate" required></div>
-            <div style="color: var(--text-muted); font-weight: 500; text-align:center;">ถึง</div>
-            <div class="form-col"><input type="date" id="leaveEndDate" required></div>
-          </div>
-        </div>
-
-        <div class="form-section">
-          <div class="section-title"><i class="fas fa-user-check" style="color:var(--primary);"></i> เลือกรายชื่อเจ้าหน้าที่ <span id="selectedCount" style="color: var(--secondary); font-size:13px; margin-left:8px; font-weight:600;"></span></div>
-          <div class="staff-container">
-            <input type="text" id="staffSearch" placeholder="🔍 ค้นหาชื่อเจ้าหน้าที่..." style="margin-bottom: 13px;">
-            <div class="staff-actions">
-              <button type="button" class="action-btn" onclick="selectAllStaff()"><i class="fas fa-check-double" style="color:var(--primary);"></i> เลือกทั้งหมด</button>
-              <button type="button" class="action-btn" onclick="clearAllStaff()"><i class="fas fa-times" style="color:#ef4444;"></i> ยกเลิกทั้งหมด</button>
-            </div>
-            <div class="staff-grid" id="staffGrid"></div>
-          </div>
-        </div>
-
-        <div class="form-section">
-          <div class="section-title"><i class="fas fa-tasks" style="color:var(--primary);"></i> ประเภทกิจกรรมที่ปฏิบัติ</div>
-          <div class="activity-grid">
-            <label class="activity-item" onclick="selectActivityItem(this)"><input type="radio" name="leaveActivity" value="ไปราชการปกติ"><div class="activity-content"><span class="activity-icon">🏢</span><span class="activity-text">ไปราชการปกติ</span></div></label>
-            <label class="activity-item" onclick="selectActivityItem(this)"><input type="radio" name="leaveActivity" value="ไปราชการงานโควิด"><div class="activity-content"><span class="activity-icon">🦠</span><span class="activity-text">งานโควิด</span></div></label>
-            <label class="activity-item" onclick="selectActivityItem(this)"><input type="radio" name="leaveActivity" value="ลาป่วย"><div class="activity-content"><span class="activity-icon">🏥</span><span class="activity-text">ลาป่วย</span></div></label>
-            <label class="activity-item" onclick="selectActivityItem(this)"><input type="radio" name="leaveActivity" value="ลาพักผ่อน"><div class="activity-content"><span class="activity-icon">🏖️</span><span class="activity-text">ลาพักผ่อน</span></div></label>
-            <label class="activity-item" onclick="selectActivityItem(this)"><input type="radio" name="leaveActivity" value="ลากิจ"><div class="activity-content"><span class="activity-icon">📝</span><span class="activity-text">ลากิจ</span></div></label>
-            <label class="activity-item" onclick="selectActivityItem(this)"><input type="radio" name="leaveActivity" value="สาย"><div class="activity-content"><span class="activity-icon">⏰</span><span class="activity-text">สาย</span></div></label>
-            <label class="activity-item" onclick="selectActivityItem(this)"><input type="radio" name="leaveActivity" value="WFH"><div class="activity-content"><span class="activity-icon">🏡</span><span class="activity-text">WFH</span></div></label>
-            <label class="activity-item" onclick="selectActivityItem(this)"><input type="radio" name="leaveActivity" value="ลาคลอดบุตร"><div class="activity-content"><span class="activity-icon">👶</span><span class="activity-text">ลาคลอด</span></div></label>
-          </div>
-        </div>
-
-        <div class="form-section">
-          <div class="form-group" style="margin-bottom:0;">
-            <label for="leaveRemarks"><i class="fas fa-comment-dots"></i> หมายเหตุ (ถ้ามี)</label>
-            <textarea id="leaveRemarks" rows="2" placeholder="ระบุเหตุผล สถานที่ หรือรายละเอียดเพิ่มเติม"></textarea>
-          </div>
-        </div>
-
-        <button type="button" class="submit-btn" onclick="submitLeave()">
-          <i class="fas fa-save"></i> บันทึกข้อมูลการลา
-        </button>
-      </form>
-    </div>
-
-    <!-- ============ TAB 3: แก้ไขย้อนหลัง ============ -->
-    <div id="EditTab" class="tab-content">
-      <div class="form-section">
-        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; margin-bottom: 14px; gap: 10px;">
-          <div class="section-title" style="margin-bottom:0;"><i class="fas fa-list-ul" style="color:var(--primary);"></i> รายการข้อมูล (100 รายการล่าสุด)</div>
-          <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
-            <span id="editStatus" style="font-size:12px; color:var(--text-muted);"></span>
-            <button type="button" class="action-btn" id="editRefreshBtn" onclick="loadRecentActivities({ silent: true })" title="โหลดข้อมูลล่าสุด"><i class="fas fa-sync-alt" style="color:var(--primary);"></i> รีเฟรช</button>
-            <input type="text" id="editSearch" placeholder="🔍 ค้นหารายการ..." style="max-width: 240px; margin: 0; padding: 8px 12px; font-size: 14px;" oninput="filterEditActivities()">
-          </div>
-        </div>
-        <div id="activityListContainer" class="staff-container" style="max-height: 500px; overflow-y: auto;">
-          <p style="text-align:center; padding:20px; color:var(--text-muted);">คลิกแท็บเพื่อโหลดข้อมูล...</p>
-        </div>
+  <main>
+    <!-- ============ หน้า: วันนี้ ============ -->
+    <section class="view" id="view-today" aria-labelledby="todayTitle">
+      <div class="view-head">
+        <div class="hello" style="flex:1"><span id="helloText">สวัสดีครับ</span><strong id="todayTitle">ภาพรวมวันนี้</strong></div>
+        <button type="button" class="icon-btn" id="todayRefresh" aria-label="โหลดข้อมูลวันนี้ใหม่"><i class="fa-solid fa-rotate-right"></i></button>
       </div>
-    </div>
 
-    <footer>
-      <p>© 2025<span id="footerYear"></span> พัฒนาโดย กลุ่มด่านควบคุมโรคติดต่อระหว่างประเทศและกักกันโรค สคร.12</p>
-    </footer>
-  </div>
+      <div class="today-grid">
+      <div class="setup-card" id="setupCard" hidden>
+        <i class="fa-solid fa-user-check" style="font-size:20px"></i>
+        <div style="flex:1">เลือกชื่อของคุณไว้ ระบบจะเลือกให้อัตโนมัติทุกครั้งที่บันทึก</div>
+        <button type="button" class="btn btn-primary" data-action="pick-me">เลือกชื่อ</button>
+      </div>
+
+      <div id="meStatus" class="me-status" hidden></div>
+
+      <div class="stats" id="stats">
+        <button type="button" class="stat normal" data-filter="normal" aria-pressed="false"><b id="statNormal">–</b><span>ปฏิบัติงาน</span></button>
+        <button type="button" class="stat gov" data-filter="gov" aria-pressed="false"><b id="statGov">–</b><span>ไปราชการ</span></button>
+        <button type="button" class="stat other" data-filter="leave" aria-pressed="false"><b id="statOther">–</b><span>ลา / อื่นๆ</span></button>
+      </div>
+
+      <div class="quick">
+        <a href="#activity" class="btn btn-primary"><i class="fa-solid fa-plus"></i> บันทึกกิจกรรม</a>
+        <a href="#leave" class="btn btn-ghost"><i class="fa-regular fa-calendar-minus"></i> ลา / ไปราชการ</a>
+      </div>
+
+      <div class="section sec-events">
+        <p class="section-label"><i class="fa-regular fa-calendar"></i> กิจกรรมวันนี้ <span class="count" id="eventCount"></span></p>
+        <div class="card" id="eventList"><div class="skeleton" style="height:56px"></div></div>
+      </div>
+
+      <div class="section sec-staff">
+        <p class="section-label"><i class="fa-solid fa-users"></i> <span id="staffSectionTitle">เจ้าหน้าที่วันนี้</span> <span class="count" id="staffTotal"></span></p>
+        <div class="card" id="staffList"><div class="skeleton" style="height:40px"></div></div>
+      </div>
+      </div>
+      <p class="status-line" id="todayStatus" style="text-align:center; margin-top:10px;"></p>
+
+      <p class="footer">© 2025<span id="footerYear"></span> กลุ่มด่านควบคุมโรคติดต่อระหว่างประเทศและกักกันโรค สคร.12</p>
+    </section>
+
+    <!-- ============ หน้า: บันทึกกิจกรรม ============ -->
+    <section class="view" id="view-activity" aria-labelledby="activityTitle">
+      <div class="view-head"><h1 id="activityTitle">บันทึกกิจกรรม</h1></div>
+      <form id="activityForm" novalidate>
+        <div class="form-grid act-grid">
+        <div class="card fg-info">
+          <div class="field">
+            <label for="actTitle">ชื่อกิจกรรม</label>
+            <input class="input" id="actTitle" autocomplete="off" placeholder="ประชุมคณะทำงาน" maxlength="200">
+            <div class="chips" id="titleSuggest" style="margin-top:8px"></div>
+          </div>
+          <div class="field">
+            <label for="actDetails">รายละเอียด</label>
+            <textarea class="input" id="actDetails" rows="2" placeholder="สถานที่ หัวข้อ หรือรายละเอียดเพิ่มเติม"></textarea>
+          </div>
+        </div>
+
+        <div class="card fg-people">
+          <p class="section-label"><i class="fa-solid fa-users"></i> ผู้รับผิดชอบ / ผู้เกี่ยวข้อง <span class="count" id="actCount"></span></p>
+          <div id="actPicker"></div>
+        </div>
+
+        <div class="card fg-date">
+          <p class="section-label"><i class="fa-regular fa-clock"></i> วันและเวลา</p>
+          <div class="seg" id="actDaySeg">
+            <button type="button" data-day="0">วันนี้</button>
+            <button type="button" data-day="1">พรุ่งนี้</button>
+          </div>
+          <div class="seg" id="actTimeSeg">
+            <button type="button" data-time="08:30-16:30">ทั้งวัน</button>
+            <button type="button" data-time="08:30-12:00">เช้า</button>
+            <button type="button" data-time="13:00-16:30">บ่าย</button>
+          </div>
+          <div class="grid-2" style="margin-bottom:10px">
+            <div class="field"><label for="actDate">วันที่เริ่ม</label><input type="date" class="input" id="actDate"></div>
+            <div class="field"><label for="actTime">เวลาเริ่ม</label><input type="time" class="input" id="actTime"></div>
+          </div>
+          <div class="grid-2">
+            <div class="field"><label for="actEndDate">วันที่สิ้นสุด</label><input type="date" class="input" id="actEndDate"></div>
+            <div class="field"><label for="actEndTime">เวลาสิ้นสุด</label><input type="time" class="input" id="actEndTime"></div>
+          </div>
+        </div>
+        </div>
+
+        <div class="submit-bar">
+          <div class="summary" id="actSummary"><strong>ยังไม่ได้กรอกข้อมูล</strong></div>
+          <button type="submit" class="btn btn-primary" id="actSubmit"><i class="fa-solid fa-check"></i> บันทึก</button>
+        </div>
+      </form>
+    </section>
+
+    <!-- ============ หน้า: ลา / ไปราชการ ============ -->
+    <section class="view" id="view-leave" aria-labelledby="leaveTitle">
+      <div class="view-head"><h1 id="leaveTitle">บันทึกการลา / ไปราชการ</h1></div>
+      <form id="leaveForm" novalidate>
+        <div class="form-grid leave-grid">
+        <div class="card fg-people">
+          <p class="section-label"><i class="fa-solid fa-user-check"></i> เจ้าหน้าที่ <span class="count" id="leaveCount"></span></p>
+          <div id="leavePicker"></div>
+        </div>
+
+        <div class="card fg-info">
+          <p class="section-label"><i class="fa-solid fa-list"></i> ประเภท</p>
+          <div class="type-grid" id="leaveTypes" role="radiogroup" aria-label="ประเภทการลา"></div>
+        </div>
+
+        <div class="card fg-date">
+          <p class="section-label"><i class="fa-regular fa-calendar"></i> วันที่</p>
+          <div class="seg" id="leaveDaySeg">
+            <button type="button" data-day="0">วันนี้</button>
+            <button type="button" data-day="1">พรุ่งนี้</button>
+          </div>
+          <div class="grid-2">
+            <div class="field"><label for="leaveStart">ตั้งแต่</label><input type="date" class="input" id="leaveStart"></div>
+            <div class="field"><label for="leaveEnd">ถึง</label><input type="date" class="input" id="leaveEnd"></div>
+          </div>
+          <div class="field" style="margin-top:12px">
+            <label for="leaveRemarks">หมายเหตุ (ถ้ามี)</label>
+            <textarea class="input" id="leaveRemarks" rows="2" placeholder="สถานที่ไปราชการ หรือเหตุผล"></textarea>
+          </div>
+        </div>
+        </div>
+
+        <div class="submit-bar">
+          <div class="summary" id="leaveSummary"><strong>ยังไม่ได้เลือกข้อมูล</strong></div>
+          <button type="submit" class="btn btn-primary" id="leaveSubmit"><i class="fa-solid fa-check"></i> บันทึก</button>
+        </div>
+      </form>
+    </section>
+
+    <!-- ============ หน้า: ประวัติ ============ -->
+    <section class="view" id="view-history" aria-labelledby="historyTitle">
+      <div class="view-head">
+        <h1 id="historyTitle">ประวัติการบันทึก</h1>
+        <button type="button" class="icon-btn" id="historyRefresh" aria-label="โหลดรายการใหม่"><i class="fa-solid fa-rotate-right"></i></button>
+      </div>
+      <div class="search"><i class="fa-solid fa-magnifying-glass"></i><input type="search" class="input" id="historySearch" placeholder="ค้นหาชื่อกิจกรรมหรือชื่อคน" aria-label="ค้นหารายการ"></div>
+      <div class="filters" id="historyFilters" role="tablist">
+        <button type="button" class="chip on" data-f="all">ทั้งหมด</button>
+        <button type="button" class="chip" data-f="activity">กิจกรรม</button>
+        <button type="button" class="chip" data-f="leave">ลา / ไปราชการ</button>
+        <button type="button" class="chip" data-f="mine">ของฉัน</button>
+      </div>
+      <p class="status-line" id="historyStatus"></p>
+      <div id="historyList"></div>
+    </section>
+  </main>
+
+  <!-- ==================== เมนูด้านล่าง ==================== -->
+  <nav class="bottom-nav" aria-label="เมนูหลัก">
+    <div class="inner">
+      <div class="nav-brand">
+        <img src="https://lh3.googleusercontent.com/d/1G8Tczg6khRru0l84RSKE0qnj7clQfaQL=s96-rw" alt="" width="40" height="40" decoding="async">
+        <div><strong>กลุ่มด่านฯ</strong><span>สคร.12 สงขลา</span></div>
+      </div>
+      <a href="#today" class="nav-btn" data-view="today"><i class="fa-solid fa-house"></i>วันนี้</a>
+      <a href="#activity" class="nav-btn" data-view="activity"><i class="fa-regular fa-pen-to-square"></i>กิจกรรม</a>
+      <a href="#leave" class="nav-btn" data-view="leave"><i class="fa-regular fa-calendar-minus"></i>ลา/ราชการ</a>
+      <a href="#history" class="nav-btn" data-view="history"><i class="fa-solid fa-clock-rotate-left"></i>ประวัติ</a>
+    </div>
+  </nav>
+
+  <div class="toast-wrap" id="toasts" aria-live="polite"></div>
 
   <script>
     // ==========================================
     // ⚙️ ตั้งค่า: ลิงก์ Web App ของ Apps Script (ลงท้ายด้วย /exec)
-    //    Apps Script > Deploy > Manage deployments > คัดลอก Web app URL มาวางแทน
     // ==========================================
     const API_URL = 'https://script.google.com/macros/s/AKfycbzjAuYy6iJlDhSBL8N9Jir7STPMjTiil3PTGFh9-i4NKl0E3xsxGLLNVg2JP-okmescXw/exec';
 
-    // เรียก API ของ Apps Script (ใช้ Content-Type text/plain เพื่อไม่ให้เบราว์เซอร์ต้องขออนุญาต CORS ก่อน)
+    // เรียก API ของ Apps Script (Content-Type text/plain → ไม่ต้องขออนุญาต CORS ล่วงหน้า)
     function callApi(action, payload) {
-      if (API_URL.includes('PASTE_DEPLOYMENT_ID_HERE')) {
-        return Promise.reject(new Error('ยังไม่ได้ตั้งค่า API_URL ในไฟล์ index.html'));
-      }
       return fetch(API_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
@@ -677,584 +582,827 @@
           return res.data;
         })
         .catch(err => {
-          if (err instanceof SyntaxError) throw new Error('server ตอบกลับไม่ถูกต้อง กรุณาตรวจสอบ API_URL และการ deploy (Who has access: Anyone)');
-          if (err instanceof TypeError) throw new Error('เชื่อมต่อ server ไม่ได้ กรุณาตรวจสอบอินเทอร์เน็ตแล้วลองใหม่');
+          if (err instanceof SyntaxError) throw new Error('server ตอบกลับไม่ถูกต้อง กรุณาตรวจสอบการ deploy');
+          if (err instanceof TypeError) throw new Error('เชื่อมต่อ server ไม่ได้ ตรวจสอบอินเทอร์เน็ตแล้วลองใหม่');
           throw err;
         });
     }
 
-    // ตัวแทน google.script.run (ซึ่งใช้ได้เฉพาะในหน้า Apps Script) → โค้ดส่วนอื่นเรียกใช้แบบเดิมได้
-    // เช่น google.script.run.withSuccessHandler(fn).withFailureHandler(fn).saveActivityData(data)
-    const google = { script: { get run() { return createApiRunner(); } } };
-    function createApiRunner() {
-      let onSuccess = () => {};
-      let onFailure = (err) => console.error(err);
-      const runner = new Proxy({}, {
-        get(_, prop) {
-          if (prop === 'withSuccessHandler') return fn => { onSuccess = fn; return runner; };
-          if (prop === 'withFailureHandler') return fn => { onFailure = fn; return runner; };
-          return (payload) => { callApi(String(prop), payload).then(data => onSuccess(data), err => onFailure(err)); };
-        }
-      });
-      return runner;
-    }
-
-    // รายชื่อเจ้าหน้าที่โหลดจาก STAFF_LIST ในไฟล์ รหัส.js (แก้รายชื่อที่นั่นที่เดียว)
-    // เก็บสำเนาไว้ในเบราว์เซอร์ เพื่อให้เปิดหน้าแล้วแสดงรายชื่อได้ทันที แล้วค่อยอัปเดตจาก server
-    const STAFF_CACHE_KEY = 'qd_staffList';
-    let staffList = [];
-    let activityStaffList = [];
-    let selectedStaff = [];
-    let activitySelectedStaff = [];
-    let currentActivities = [];
-
-    // วันที่วันนี้ตามเวลาประเทศไทย (yyyy-mm-dd) — toISOString() ใช้เวลา UTC ทำให้ได้วันที่เมื่อวานช่วง 00:00–06:59 น.
-    function todayStr() {
-      return new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Bangkok' });
-    }
-
-    // ป้องกันอักขระพิเศษ/HTML ในข้อมูลทำให้หน้าเว็บพัง
-    function escapeHtml(value) {
+    // ==========================================
+    // ตัวช่วยทั่วไป
+    // ==========================================
+    const $ = (sel, root = document) => root.querySelector(sel);
+    const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
+    const store = {
+      get(key, fallback) { try { const v = localStorage.getItem(key); return v == null ? fallback : JSON.parse(v); } catch (e) { return fallback; } },
+      set(key, value) { try { localStorage.setItem(key, JSON.stringify(value)); } catch (e) { /* โหมดส่วนตัว ใช้ต่อได้ */ } }
+    };
+    function esc(value) {
       return String(value == null ? '' : value)
-        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
     }
-
-    // แสดงข้อผิดพลาดจากฝั่ง server (ไม่ให้หน้าจอค้างที่ "กำลังบันทึก...")
-    function showServerError(error) {
-      const msg = (error && error.message) ? error.message : String(error || 'ไม่ทราบสาเหตุ');
-      Swal.fire({ title: 'เกิดข้อผิดพลาด!', text: msg, icon: 'error', confirmButtonColor: '#ef4444' });
+    // วันที่วันนี้ตามเวลาประเทศไทย (yyyy-mm-dd)
+    function todayStr() { return new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Bangkok' }); }
+    function addDays(ds, n) { const d = new Date(ds + 'T00:00:00Z'); d.setUTCDate(d.getUTCDate() + n); return d.toISOString().slice(0, 10); }
+    const TH_MONTHS = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
+    const TH_DAYS = ['อาทิตย์', 'จันทร์', 'อังคาร', 'พุธ', 'พฤหัสบดี', 'ศุกร์', 'เสาร์'];
+    function thDate(ds, withYear = true) {
+      const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(ds || '');
+      if (!m) return ds || '-';
+      return `${Number(m[3])} ${TH_MONTHS[Number(m[2]) - 1]}${withYear ? ' ' + (Number(m[1]) + 543) : ''}`;
     }
-
-    // แยกรายชื่อผู้เกี่ยวข้องที่บันทึกไว้เป็นข้อความ "ชื่อ1, ชื่อ2"
-    function splitPersons(str) {
-      return String(str || '').split(',').map(s => s.trim()).filter(Boolean);
+    function thRange(a, b) {
+      if (!a) return '-';
+      if (!b || a === b) return thDate(a);
+      if (a.slice(0, 4) === b.slice(0, 4)) return `${thDate(a, false)} – ${thDate(b)}`;
+      return `${thDate(a)} – ${thDate(b)}`;
     }
-
-    // ตัวเลือกรายชื่อสำหรับหน้าต่างแก้ไข: รวมชื่อเดิมที่ไม่อยู่ในรายชื่อ (เช่น สะกดผิด/ย้ายออกแล้ว) ไว้ท้ายรายการ
-    // เพื่อไม่ให้ข้อมูลเดิมหายไปเมื่อกดบันทึก
-    function buildPersonOptions(baseList, currentNames) {
-      const extras = [...new Set(currentNames.filter(n => n && !baseList.includes(n)))];
-      return [...baseList.map(name => ({ name, extra: false })), ...extras.map(name => ({ name, extra: true }))];
+    function relDay(ds) {
+      const t = todayStr();
+      if (ds === t) return 'วันนี้';
+      if (ds === addDays(t, -1)) return 'เมื่อวาน';
+      if (ds === addDays(t, 1)) return 'พรุ่งนี้';
+      return thDate(ds);
     }
+    function splitPersons(str) { return String(str || '').split(',').map(s => s.trim()).filter(Boolean); }
+    function nowTime() { return new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Bangkok' }); }
 
-    function buildStaffItem(name, onToggle) {
-      const div = document.createElement('div');
-      div.className = 'staff-item';
-      div.dataset.name = name;
-      const box = document.createElement('div');
-      box.className = 'staff-checkbox';
-      const label = document.createElement('div');
-      label.style.cssText = 'font-size:14px; font-weight:500;';
-      label.textContent = name;
-      div.appendChild(box);
-      div.appendChild(label);
-      div.onclick = () => onToggle(div, name);
-      return div;
+    // ข้อความแจ้งด้านล่าง
+    function toast(message, type = 'success', ms = 3200) {
+      const icon = { success: 'fa-circle-check', error: 'fa-circle-exclamation', info: 'fa-circle-info' }[type] || 'fa-circle-info';
+      const el = document.createElement('div');
+      el.className = 'toast ' + type;
+      el.setAttribute('role', type === 'error' ? 'alert' : 'status');
+      el.innerHTML = `<i class="fa-solid ${icon}"></i><div style="flex:1">${esc(message)}</div>`;
+      el.onclick = () => el.remove();
+      $('#toasts').appendChild(el);
+      setTimeout(() => el.remove(), type === 'error' ? Math.max(ms, 6000) : ms);
     }
+    function errMsg(error) { return (error && error.message) ? error.message : String(error || 'ไม่ทราบสาเหตุ'); }
 
-    function openTab(evt, tabName) {
-      document.querySelectorAll(".tab-content").forEach(tab => tab.style.display = "none");
-      document.querySelectorAll(".tab-btn").forEach(btn => btn.classList.remove("active"));
-      document.getElementById(tabName).style.display = "block";
-      evt.currentTarget.classList.add("active");
-    }
-
-    document.addEventListener('DOMContentLoaded', () => {
-      const today = todayStr();
-      document.getElementById('date').value = today;
-      document.getElementById('endDate').value = today;
-      document.getElementById('time').value = '08:30';
-      document.getElementById('endTime').value = '16:30';
-      document.getElementById('leaveStartDate').value = today;
-      document.getElementById('leaveEndDate').value = today;
-
-      // footer แสดงช่วงปี เช่น © 2025–2026 (อัปเดตอัตโนมัติทุกปี)
-      const currentYear = Number(today.substring(0, 4));
-      if (currentYear > 2025) document.getElementById('footerYear').textContent = '–' + currentYear;
-
-      loadStaffList();
-    });
-
-    // แสดงข้อความแทนรายชื่อ (ระหว่างโหลด / โหลดไม่สำเร็จ)
-    function setStaffGridMessage(html) {
-      ['staffGrid', 'activityStaffGrid'].forEach(id => {
-        document.getElementById(id).innerHTML = `<p style="grid-column:1/-1; text-align:center; padding:16px; color:var(--text-muted);">${html}</p>`;
-      });
-    }
-
-    // โหลดรายชื่อ: แสดงจากสำเนาในเบราว์เซอร์ทันที (ถ้ามี) แล้วอัปเดตจาก server
-    function loadStaffList() {
-      let cached = null;
-      try { cached = JSON.parse(localStorage.getItem(STAFF_CACHE_KEY) || 'null'); } catch (e) { cached = null; }
-      if (Array.isArray(cached) && cached.length) {
-        staffList = cached;
-        renderStaffGrids();
+    // ปุ่มระหว่างบันทึก
+    function setBusy(btn, busy, label) {
+      if (busy) {
+        btn.dataset.label = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> ${label || 'กำลังบันทึก…'}`;
       } else {
-        setStaffGridMessage('<i class="fas fa-spinner fa-spin"></i> กำลังโหลดรายชื่อ...');
+        btn.disabled = false;
+        if (btn.dataset.label) btn.innerHTML = btn.dataset.label;
       }
-
-      google.script.run.withSuccessHandler(list => {
-        if (!Array.isArray(list) || list.length === 0) return;
-        try { localStorage.setItem(STAFF_CACHE_KEY, JSON.stringify(list)); } catch (e) { /* ไม่เป็นไร */ }
-        if (JSON.stringify(list) !== JSON.stringify(staffList)) {
-          staffList = list;
-          renderStaffGrids();
-        }
-      }).withFailureHandler(error => {
-        if (staffList.length) return; // มีรายชื่อจากสำเนาแล้ว ใช้ต่อได้
-        setStaffGridMessage(`<i class="fas fa-exclamation-circle" style="color:#ef4444;"></i> โหลดรายชื่อไม่สำเร็จ: ${escapeHtml(error.message)}<br><button type="button" class="action-btn" style="margin:10px auto 0;" onclick="loadStaffList()"><i class="fas fa-sync-alt"></i> ลองใหม่</button>`);
-      }).getStaffList();
     }
 
-    // สร้างรายการเลือกรายชื่อทั้งสองแท็บ (คงรายชื่อที่เลือกไว้แล้ว)
-    function renderStaffGrids() {
-      activityStaffList = [...staffList, "ผู้ที่สนใจ"];
-      selectedStaff = selectedStaff.filter(n => staffList.includes(n));
-      activitySelectedStaff = activitySelectedStaff.filter(n => activityStaffList.includes(n));
+    // ==========================================
+    // แผ่นเลื่อนขึ้น (bottom sheet) + กล่องยืนยัน
+    // ==========================================
+    let activeSheet = null;
+    function openSheet({ title, body, foot, onClose }) {
+      closeSheet();
+      const backdrop = document.createElement('div');
+      backdrop.className = 'sheet-backdrop';
+      backdrop.innerHTML = `
+        <div class="sheet" role="dialog" aria-modal="true" aria-label="${esc(title)}">
+          <div class="sheet-head"><h2>${esc(title)}</h2><button type="button" class="icon-btn" data-close aria-label="ปิด"><i class="fa-solid fa-xmark"></i></button></div>
+          <div class="sheet-body"></div>
+          ${foot ? '<div class="sheet-foot"></div>' : ''}
+        </div>`;
+      const bodyEl = $('.sheet-body', backdrop);
+      if (typeof body === 'string') bodyEl.innerHTML = body; else if (body) bodyEl.appendChild(body);
+      if (foot) { const f = $('.sheet-foot', backdrop); if (typeof foot === 'string') f.innerHTML = foot; else f.appendChild(foot); }
+      backdrop.addEventListener('click', e => { if (e.target === backdrop || e.target.closest('[data-close]')) closeSheet(); });
+      document.body.appendChild(backdrop);
+      document.body.style.overflow = 'hidden';
+      activeSheet = { el: backdrop, onClose };
+      setTimeout(() => { const f = $('[data-autofocus]', backdrop) || $('[data-close]', backdrop); f && f.focus({ preventScroll: true }); }, 50);
+      return backdrop;
+    }
+    function closeSheet() {
+      if (!activeSheet) return;
+      const s = activeSheet;
+      activeSheet = null;
+      s.el.remove();
+      document.body.style.overflow = '';
+      if (s.onClose) s.onClose();
+    }
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeSheet(); });
 
-      const grid = document.getElementById('staffGrid');
-      const activityGrid = document.getElementById('activityStaffGrid');
-      grid.innerHTML = '';
-      activityGrid.innerHTML = '';
-
-      staffList.forEach(name => {
-        // Tab การลา
-        const item = buildStaffItem(name, (div) => {
-          div.classList.toggle('selected');
-          if (selectedStaff.includes(name)) selectedStaff = selectedStaff.filter(n => n !== name);
-          else selectedStaff.push(name);
-          updateCount();
+    function confirmSheet({ title, text, okText = 'ยืนยัน', danger = false }) {
+      return new Promise(resolve => {
+        let answered = false;
+        const sheet = openSheet({
+          title,
+          body: `<p style="font-size:15px">${esc(text)}</p>`,
+          foot: `<button type="button" class="btn btn-ghost" data-close>ยกเลิก</button>
+                 <button type="button" class="btn ${danger ? 'btn-danger' : 'btn-primary'}" data-ok>${esc(okText)}</button>`,
+          onClose: () => { if (!answered) resolve(false); }
         });
-        if (selectedStaff.includes(name)) item.classList.add('selected');
-        grid.appendChild(item);
-      });
-
-      activityStaffList.forEach(name => {
-        // Tab กิจกรรม
-        const item = buildStaffItem(name, (div) => {
-          div.classList.toggle('selected');
-          if (activitySelectedStaff.includes(name)) activitySelectedStaff = activitySelectedStaff.filter(n => n !== name);
-          else activitySelectedStaff.push(name);
-          updateActivityCount();
-        });
-        if (activitySelectedStaff.includes(name)) item.classList.add('selected');
-        activityGrid.appendChild(item);
-      });
-
-      updateCount();
-      updateActivityCount();
-      // คงผลการค้นหาที่พิมพ์ไว้
-      ['staffSearch', 'activityStaffSearch'].forEach(id => document.getElementById(id).dispatchEvent(new Event('input')));
-    }
-
-    // เลือกเฉพาะรายชื่อที่แสดงอยู่บนจอ (ตามผลการค้นหา) โดยคงรายชื่อที่เลือกไว้ก่อนหน้า
-    function selectVisible(gridSelector, selectedArr) {
-      document.querySelectorAll(gridSelector + ' .staff-item').forEach(el => {
-        if (el.style.display === 'none') return;
-        el.classList.add('selected');
-        if (!selectedArr.includes(el.dataset.name)) selectedArr.push(el.dataset.name);
+        $('[data-ok]', sheet).onclick = () => { answered = true; closeSheet(); resolve(true); };
       });
     }
 
-    // --- กิจกรรม ---
-    function updateActivityCount() {
-      const el = document.getElementById('activitySelectedCount');
-      el.innerText = activitySelectedStaff.length > 0 ? `(${activitySelectedStaff.length} คน)` : '';
+    // ==========================================
+    // สถานะของแอป
+    // ==========================================
+    const STAFF_CACHE_KEY = 'qd_staffList';
+    const state = {
+      staff: store.get(STAFF_CACHE_KEY, []),
+      me: store.get('qd_me', ''),
+      overview: null,
+      history: [],
+      historyLoadedAt: 0,
+      historyFilter: 'all'
+    };
+    let pickersReady = false; // ตัวเลือกรายชื่อทั้งสองหน้าสร้างเสร็จแล้ว
+    const activityOptions = () => [...state.staff, 'ผู้ที่สนใจ'];
+
+    const LEAVE_TYPES = [
+      { value: 'ไปราชการปกติ', icon: '🏢', label: 'ไปราชการ', gov: true },
+      { value: 'ไปราชการงานโควิด', icon: '🦠', label: 'งานโควิด', gov: true },
+      { value: 'ลาป่วย', icon: '🏥', label: 'ลาป่วย' },
+      { value: 'ลาพักผ่อน', icon: '🏖️', label: 'ลาพักผ่อน' },
+      { value: 'ลากิจ', icon: '📝', label: 'ลากิจ' },
+      { value: 'สาย', icon: '⏰', label: 'สาย' },
+      { value: 'WFH', icon: '🏡', label: 'WFH' },
+      { value: 'ลาคลอดบุตร', icon: '👶', label: 'ลาคลอด' }
+    ];
+    const leaveTypeOf = v => LEAVE_TYPES.find(t => t.value === v);
+
+    // ==========================================
+    // ตัวเลือกรายชื่อ (ค้นหา + ชิป)
+    // ==========================================
+    function createPicker(root, opts) {
+      let selected = [];
+      let term = '';
+      root.className = 'picker';
+      root.innerHTML = `
+        <div class="pk-sel" aria-live="polite"></div>
+        <div class="pk-tools">
+          <div class="search"><i class="fa-solid fa-magnifying-glass"></i><input type="search" class="input" placeholder="ค้นหาชื่อ" aria-label="ค้นหาชื่อ" autocomplete="off"></div>
+          <button type="button" class="chip-btn pk-me" hidden>+ ฉัน</button>
+          ${opts.single ? '' : '<button type="button" class="chip-btn pk-all">เลือกที่เห็น</button>'}
+          <button type="button" class="chip-btn pk-clear">ล้าง</button>
+        </div>
+        <div class="pk-opts" role="group" aria-label="รายชื่อ"></div>`;
+      const selEl = $('.pk-sel', root), optsEl = $('.pk-opts', root), input = $('input', root), meBtn = $('.pk-me', root);
+
+      const options = () => {
+        const base = opts.getOptions();
+        const extras = selected.filter(n => !base.includes(n));
+        return [...base.map(n => ({ n, extra: false })), ...extras.map(n => ({ n, extra: true }))];
+      };
+      const visible = () => { const t = term.trim().toLowerCase(); return options().filter(o => !t || o.n.toLowerCase().includes(t)); };
+
+      function render() {
+        selEl.innerHTML = selected.length
+          ? selected.map(n => `<button type="button" class="chip on" data-n="${esc(n)}" aria-label="เอา ${esc(n)} ออก">${esc(n)} <i class="fa-solid fa-xmark"></i></button>`).join('')
+          : `<span class="muted small">${esc(opts.placeholder || 'แตะชื่อด้านล่างเพื่อเลือก')}</span>`;
+        const list = visible();
+        if (!opts.getOptions().length) optsEl.innerHTML = '<span class="muted small"><i class="fa-solid fa-spinner fa-spin"></i> กำลังโหลดรายชื่อ…</span>';
+        else optsEl.innerHTML = list.length
+          ? list.map(o => { const on = selected.includes(o.n); return `<button type="button" class="chip${on ? ' on' : ''}${o.extra ? ' warn' : ''}" data-n="${esc(o.n)}" aria-pressed="${on}">${o.extra ? '⚠️ ' : ''}${esc(o.n)}${o.extra ? ' (ไม่อยู่ในรายชื่อ)' : ''}</button>`; }).join('')
+          : '<span class="muted small">ไม่พบชื่อที่ค้นหา</span>';
+        meBtn.hidden = !state.me || !opts.getOptions().includes(state.me) || selected.includes(state.me);
+        if (opts.onChange) opts.onChange(selected.slice());
+      }
+      function toggle(n) {
+        if (opts.single) selected = selected[0] === n ? [] : [n];
+        else selected = selected.includes(n) ? selected.filter(x => x !== n) : [...selected, n];
+        render();
+      }
+      const onChipClick = e => { const b = e.target.closest('[data-n]'); if (b) toggle(b.dataset.n); };
+      selEl.addEventListener('click', onChipClick);
+      optsEl.addEventListener('click', onChipClick);
+      input.addEventListener('input', () => { term = input.value; render(); });
+      meBtn.addEventListener('click', () => { if (state.me) { selected = opts.single ? [state.me] : [...new Set([...selected, state.me])]; render(); } });
+      const allBtn = $('.pk-all', root);
+      if (allBtn) allBtn.addEventListener('click', () => { selected = [...new Set([...selected, ...visible().map(o => o.n)])]; render(); });
+      $('.pk-clear', root).addEventListener('click', () => { selected = []; render(); });
+      render();
+      return {
+        get: () => selected.slice(),
+        set(arr) { selected = [...new Set(arr.filter(Boolean))]; render(); },
+        reset() { selected = []; term = ''; input.value = ''; render(); },
+        refresh: render
+      };
     }
-    function selectAllActivityStaff() {
-      selectVisible('#activityStaffGrid', activitySelectedStaff);
-      updateActivityCount();
+
+    // ==========================================
+    // ชื่อของฉัน
+    // ==========================================
+    function renderMe() {
+      const me = state.me;
+      const firstName = me.replace(/^(ว่าที่\s*(ร้อยตรี|ร\.ต\.)\s*(หญิง)?|นางสาว|นาย|นาง|น\.ส\.|ดร\.)\s*/, '').split(/\s+/)[0];
+      $('#meName').textContent = me ? firstName : 'เลือกชื่อ';
+      $('#meBtn').title = me || 'เลือกชื่อของฉัน';
+      $('#meAvatar').innerHTML = me ? esc(firstName.charAt(0)) : '<i class="fa-solid fa-user" style="font-size:12px"></i>';
+      $('#helloText').textContent = me ? `สวัสดีครับ คุณ${firstName}` : 'สวัสดีครับ';
+      $('#setupCard').hidden = !!me || !state.staff.length;
+      if (pickersReady) { actPicker.refresh(); leavePicker.refresh(); }
+      renderMeStatus();
     }
-    function clearAllActivityStaff() {
-      activitySelectedStaff = [];
-      document.querySelectorAll('#activityStaffGrid .staff-item').forEach(el => el.classList.remove('selected'));
-      updateActivityCount();
+    function openMeSheet() {
+      const wrap = document.createElement('div');
+      wrap.innerHTML = '<p class="small muted" style="margin-bottom:10px">ระบบจะเลือกชื่อนี้ให้อัตโนมัติในหน้าลา/ไปราชการ และใช้กรองรายการ "ของฉัน" ข้อมูลเก็บไว้ในเครื่องนี้เท่านั้น</p><div></div>';
+      const picker = createPicker(wrap.lastChild, { single: true, getOptions: () => state.staff, placeholder: 'ยังไม่ได้เลือก' });
+      picker.set(state.me ? [state.me] : []);
+      const foot = document.createElement('div');
+      foot.style.cssText = 'display:flex; gap:10px; width:100%';
+      foot.innerHTML = `<button type="button" class="btn btn-ghost" data-close>ยกเลิก</button><button type="button" class="btn btn-primary" data-save style="flex:1">บันทึกชื่อ</button>`;
+      openSheet({ title: 'ชื่อของฉัน', body: wrap, foot });
+      $('[data-save]', foot).onclick = () => {
+        const me = picker.get()[0] || '';
+        state.me = me;
+        store.set('qd_me', me);
+        closeSheet();
+        renderMe();
+        if (me && !leavePicker.get().length) leavePicker.set([me]);
+        toast(me ? `ตั้งชื่อของฉันเป็น ${me} แล้ว` : 'ล้างชื่อของฉันแล้ว');
+      };
     }
-    document.getElementById('activityStaffSearch').addEventListener('input', e => {
-      const term = e.target.value.toLowerCase();
-      document.querySelectorAll('#activityStaffGrid .staff-item').forEach(el => {
-        el.style.display = el.innerText.toLowerCase().includes(term) ? 'flex' : 'none';
-      });
+
+    // ==========================================
+    // โหมดสี: อัตโนมัติ → สว่าง → มืด
+    // ==========================================
+    function applyTheme() {
+      const mode = store.get('qd_theme', 'auto');
+      if (mode === 'auto') document.documentElement.removeAttribute('data-theme');
+      else document.documentElement.setAttribute('data-theme', mode);
+      const dark = mode === 'dark' || (mode === 'auto' && matchMedia('(prefers-color-scheme: dark)').matches);
+      $('meta[name="theme-color"]').setAttribute('content', dark ? '#1C211F' : '#FFFFFF');
+      const label = { auto: 'โหมดสี: อัตโนมัติตามเครื่อง', light: 'โหมดสี: สว่าง', dark: 'โหมดสี: มืด' }[mode];
+      $('#themeBtn').title = label;
+      $('#themeBtn').setAttribute('aria-label', label);
+      $('#themeBtn').innerHTML = `<i class="fa-solid ${{ auto: 'fa-circle-half-stroke', light: 'fa-sun', dark: 'fa-moon' }[mode]}"></i>`;
+    }
+    $('#themeBtn').addEventListener('click', () => {
+      const next = { auto: 'light', light: 'dark', dark: 'auto' }[store.get('qd_theme', 'auto')] || 'auto';
+      store.set('qd_theme', next);
+      applyTheme();
+      toast($('#themeBtn').title, 'info', 1600);
     });
+    matchMedia('(prefers-color-scheme: dark)').addEventListener('change', applyTheme);
 
-    // --- การลา ---
-    function updateCount() {
-      const el = document.getElementById('selectedCount');
-      el.innerText = selectedStaff.length > 0 ? `(${selectedStaff.length} คน)` : '';
+    // ==========================================
+    // เปลี่ยนหน้า (ใช้ # ในลิงก์ → ปุ่มย้อนกลับของมือถือใช้ได้)
+    // ==========================================
+    const VIEWS = ['today', 'activity', 'leave', 'history'];
+    function showView() {
+      const name = VIEWS.includes(location.hash.slice(1)) ? location.hash.slice(1) : 'today';
+      closeSheet();
+      $$('.view').forEach(v => v.classList.toggle('active', v.id === 'view-' + name));
+      $$('.nav-btn').forEach(b => { const on = b.dataset.view === name; b.classList.toggle('active', on); on ? b.setAttribute('aria-current', 'page') : b.removeAttribute('aria-current'); });
+      window.scrollTo(0, 0);
+      if (name === 'history') showHistory();
+      if (name === 'today' && state.overview && Date.now() - (state.overview._at || 0) > 5 * 60 * 1000) loadOverview(true);
     }
-    function selectAllStaff() {
-      selectVisible('#staffGrid', selectedStaff);
-      updateCount();
-    }
-    function clearAllStaff() {
-      selectedStaff = [];
-      document.querySelectorAll('#staffGrid .staff-item').forEach(el => el.classList.remove('selected'));
-      updateCount();
-    }
-    document.getElementById('staffSearch').addEventListener('input', e => {
-      const term = e.target.value.toLowerCase();
-      document.querySelectorAll('#staffGrid .staff-item').forEach(el => {
-        el.style.display = el.innerText.toLowerCase().includes(term) ? 'flex' : 'none';
+    window.addEventListener('hashchange', showView);
+
+    // ==========================================
+    // รายชื่อเจ้าหน้าที่
+    // ==========================================
+    function loadStaff() {
+      callApi('getStaffList').then(list => {
+        if (!Array.isArray(list) || !list.length) return;
+        store.set(STAFF_CACHE_KEY, list);
+        if (JSON.stringify(list) !== JSON.stringify(state.staff)) {
+          state.staff = list;
+          if (state.me && !list.includes(state.me)) { state.me = ''; store.set('qd_me', ''); }
+          actPicker.refresh(); leavePicker.refresh(); renderMe();
+          if (state.overview) renderOverview(state.overview);
+        }
+      }).catch(err => {
+        if (!state.staff.length) toast('โหลดรายชื่อไม่สำเร็จ: ' + errMsg(err), 'error');
       });
-    });
-
-    function selectActivityItem(elem) {
-      document.querySelectorAll('.activity-item').forEach(el => el.classList.remove('selected'));
-      elem.classList.add('selected');
     }
 
-    // --- ส่งข้อมูลกิจกรรม ---
-    function submitActivity() {
-      const name1 = document.getElementById('name1').value;
-      const name2 = document.getElementById('name2').value;
-      const person = activitySelectedStaff.join(', ');
-      const date = document.getElementById('date').value;
-      const time = document.getElementById('time').value;
-      const endDate = document.getElementById('endDate').value;
-      const endTime = document.getElementById('endTime').value;
-
-      if (!name1 || !name2 || activitySelectedStaff.length === 0 || !date || !time || !endDate || !endTime) {
-        return Swal.fire({ title: 'แจ้งเตือน!', text: 'กรุณากรอกข้อมูลและเลือกผู้รับผิดชอบให้ครบ', icon: 'warning', confirmButtonColor: '#0d9488' });
-      }
-      if (`${endDate}T${endTime}` <= `${date}T${time}`) {
-        return Swal.fire({ title: 'แจ้งเตือน!', text: 'วันเวลาสิ้นสุดต้องอยู่หลังวันเวลาเริ่มต้น', icon: 'warning', confirmButtonColor: '#0d9488' });
-      }
-
-      Swal.fire({ title: 'กำลังบันทึก...', html: 'กรุณารอสักครู่', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
-      google.script.run.withSuccessHandler(res => {
-        if (res.success) {
-          Swal.fire({ title: 'สำเร็จ!', text: res.message, icon: 'success', confirmButtonColor: '#0d9488' });
-          refreshRecentInBackground();
-          document.getElementById('activityForm').reset();
-          clearAllActivityStaff();
-          const today = todayStr();
-          document.getElementById('date').value = today;
-          document.getElementById('endDate').value = today;
-          document.getElementById('time').value = '08:30';
-          document.getElementById('endTime').value = '16:30';
-        } else {
-          Swal.fire({ title: 'เกิดข้อผิดพลาด!', text: res.message, icon: 'error', confirmButtonColor: '#ef4444' });
+    // ==========================================
+    // หน้า "วันนี้"
+    // ==========================================
+    let todayFilter = '';
+    function loadOverview(silent) {
+      const btn = $('#todayRefresh i');
+      btn.classList.add('fa-spin');
+      if (!silent) $('#todayStatus').textContent = 'กำลังโหลด…';
+      callApi('getTodayOverview').then(data => {
+        data._at = Date.now();
+        state.overview = data;
+        store.set('qd_overview', data);
+        renderOverview(data);
+        $('#todayStatus').textContent = 'อัปเดตล่าสุด ' + nowTime() + ' น.';
+      }).catch(err => {
+        const notReady = /ไม่รู้จักคำสั่ง/.test(errMsg(err));
+        $('#todayStatus').textContent = notReady ? '' : '⚠️ อัปเดตไม่สำเร็จ แตะปุ่ม ⟳ เพื่อลองใหม่';
+        if (!state.overview) {
+          const msg = notReady
+            ? 'หน้า "วันนี้" จะใช้ได้หลังอัปเดต server (Apps Script) เป็นเวอร์ชันใหม่'
+            : 'โหลดข้อมูลวันนี้ไม่สำเร็จ: ' + errMsg(err);
+          $('#eventList').innerHTML = `<div class="empty"><i class="fa-solid fa-plug-circle-exclamation"></i>${esc(msg)}</div>`;
+          $('#staffList').innerHTML = '<div class="empty">–</div>';
         }
-      }).withFailureHandler(showServerError).saveActivityData({ name1, name2, person, date, time, endDate, endTime });
+      }).finally(() => btn.classList.remove('fa-spin'));
     }
 
-    // --- ส่งข้อมูลการลา ---
-    function submitLeave() {
-      const startDate = document.getElementById('leaveStartDate').value;
-      const endDate = document.getElementById('leaveEndDate').value;
-      const activity = document.querySelector('input[name="leaveActivity"]:checked')?.value;
-      const remarks = document.getElementById('leaveRemarks').value;
-
-      if (!startDate || !endDate) return Swal.fire({ title: 'แจ้งเตือน', text: 'กรุณาเลือกวันที่', icon: 'warning', confirmButtonColor: '#0d9488' });
-      if (endDate < startDate) return Swal.fire({ title: 'แจ้งเตือน', text: 'วันที่สิ้นสุดต้องไม่ก่อนวันที่เริ่ม', icon: 'warning', confirmButtonColor: '#0d9488' });
-      if (selectedStaff.length === 0) return Swal.fire({ title: 'แจ้งเตือน', text: 'กรุณาเลือกเจ้าหน้าที่อย่างน้อย 1 คน', icon: 'warning', confirmButtonColor: '#0d9488' });
-      if (!activity) return Swal.fire({ title: 'แจ้งเตือน', text: 'กรุณาเลือกประเภทกิจกรรม', icon: 'warning', confirmButtonColor: '#0d9488' });
-
-      Swal.fire({ title: 'กำลังบันทึก...', html: 'กรุณารอสักครู่', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
-      google.script.run.withSuccessHandler(res => {
-        if (res.success) {
-          // แสดงผลรายคน (รวมรายการที่ซ้ำและไม่ได้บันทึก)
-          if (res.savedCount > 0) refreshRecentInBackground();
-          const detailsHtml = (res.details || []).map(d => `<div style="text-align:left; padding:2px 0;">${escapeHtml(d)}</div>`).join('');
-          Swal.fire({
-            title: res.savedCount > 0 ? 'สำเร็จ!' : 'ไม่มีรายการใหม่',
-            html: `<div style="margin-bottom:8px;">${escapeHtml(res.message)}</div><div style="font-size:14px; max-height:240px; overflow-y:auto;">${detailsHtml}</div>`,
-            icon: res.savedCount > 0 ? 'success' : 'info',
-            confirmButtonColor: '#0d9488'
-          });
-          clearAllStaff();
-          document.getElementById('leaveRemarks').value = '';
-          document.querySelectorAll('input[name="leaveActivity"]').forEach(r => r.checked = false);
-          document.querySelectorAll('.activity-item').forEach(el => el.classList.remove('selected'));
-          const today = todayStr();
-          document.getElementById('leaveStartDate').value = today;
-          document.getElementById('leaveEndDate').value = today;
-        } else {
-          Swal.fire({ title: 'ข้อผิดพลาด', text: res.message, icon: 'error', confirmButtonColor: '#ef4444' });
-        }
-      }).withFailureHandler(showServerError).saveLeaveData({ startDate, endDate, staffNames: selectedStaff, activity, remarks });
-    }
-
-    // --- โหลดรายการแก้ไข (มีแคช: เปิดแท็บซ้ำแสดงทันที ไม่ต้องรอ server) ---
-    const RECENT_CACHE_MS = 3 * 60 * 1000; // แคชไว้ 3 นาที
-    let recentLoadedAt = 0;
-    let recentRequestId = 0;
-
-    // เรียกตอนกดแท็บ: ถ้ามีข้อมูลที่โหลดไว้ไม่เกิน 3 นาที แสดงทันที ไม่ต้องโหลดใหม่
-    function showRecentActivities() {
-      if (recentLoadedAt && Date.now() - recentLoadedAt < RECENT_CACHE_MS) return;
-      loadRecentActivities({ silent: recentLoadedAt > 0 });
-    }
-
-    function setEditStatus(text) {
-      const el = document.getElementById('editStatus');
-      if (el) el.textContent = text;
-    }
-
-    /**
-     * โหลดรายการจาก server
-     * options.silent = true → ถ้ามีรายการเดิมอยู่แล้ว ให้แสดงรายการเดิมไว้ระหว่างโหลด (ไม่ขึ้นหน้าว่าง)
-     */
-    function loadRecentActivities(options = {}) {
-      const container = document.getElementById('activityListContainer');
-      const requestId = ++recentRequestId; // ใช้ผลลัพธ์จากคำขอล่าสุดเท่านั้น
-      const refreshBtn = document.getElementById('editRefreshBtn');
-      if (refreshBtn) refreshBtn.disabled = true;
-
-      if (!options.silent || !recentLoadedAt) {
-        container.innerHTML = '<p style="text-align:center; padding:20px; color:var(--text-muted);"><i class="fas fa-spinner fa-spin"></i> กำลังโหลดข้อมูล...</p>';
+    function renderOverview(data) {
+      if (data.date) {
+        const d = new Date(data.date + 'T00:00:00Z');
+        $('#appbarDate').textContent = `${TH_DAYS[d.getUTCDay()]} ${thDate(data.date)}`;
       }
-      setEditStatus('กำลังอัปเดต...');
+      $('#statNormal').textContent = data.normalCount;
+      $('#statGov').textContent = data.govCount;
+      $('#statOther').textContent = data.otherCount;
 
-      google.script.run.withSuccessHandler(activities => {
-        if (requestId !== recentRequestId) return;
-        if (refreshBtn) refreshBtn.disabled = false;
-        recentLoadedAt = Date.now();
-        setEditStatus('อัปเดตล่าสุด ' + new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Bangkok' }) + ' น.');
-
-        if (!activities || !Array.isArray(activities) || activities.length === 0) {
-          currentActivities = [];
-          container.innerHTML = '<p style="text-align:center; padding:20px; color:var(--text-muted);">ไม่พบข้อมูลที่สามารถแก้ไขได้</p>';
-          return;
-        }
-
-        currentActivities = activities;
-        let html = '<div style="display: flex; flex-direction: column; gap: 10px;">';
-        activities.forEach((act, index) => {
-          let dateStr = 'ไม่ระบุวันที่';
-          if (act.startDate) {
-            const parts = act.startDate.split('-');
-            if (parts.length === 3) {
-              dateStr = `${parts[2]}/${parts[1]}/${parseInt(parts[0]) + 543}`;
-            } else {
-              dateStr = act.startDate;
-            }
-          }
-
-          let timeStr = '';
-          if (act.type === 'activity' && act.startTime && act.endTime) {
-            timeStr = ` &nbsp;<i class="fas fa-clock"></i> ${escapeHtml(act.startTime)} - ${escapeHtml(act.endTime)} น.`;
-          }
-
-          const isLeave = act.type === 'leave';
-          const badgeClass = isLeave ? 'badge-leave' : 'badge-activity';
-          const typeText = isLeave ? 'การลา/ไปราชการ' : 'กิจกรรม';
-
-          html += `
-            <div class="staff-item edit-list-item" style="justify-content: space-between; padding: 14px; align-items: flex-start; cursor:default;">
-              <div style="flex: 1; min-width: 0;">
-                <span class="type-badge ${badgeClass}">${typeText}</span>
-                <div class="edit-title" style="font-weight:600; color:var(--primary-dark); font-size:15px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escapeHtml(act.title || '-')}</div>
-                <div class="edit-person" style="font-size:13px; color:var(--text-muted); margin-top:4px; line-height:1.6;">
-                  <i class="fas fa-calendar-alt"></i> ${escapeHtml(dateStr)}${timeStr}
-                  <br><i class="fas fa-users" style="margin-top:3px;"></i> ${escapeHtml(act.person || '-')}
-                </div>
-              </div>
-              <div style="display:flex; gap:8px; flex-shrink:0; align-self:center;">
-                <button type="button" class="action-btn" onclick="openEditModal(${index})">
-                  <i class="fas fa-edit" style="color:var(--secondary);"></i> แก้ไข
-                </button>
-                <button type="button" class="action-btn" onclick="deleteRecord(${index})" style="border-color:#fecaca; color:#ef4444; background:#fef2f2;">
-                  <i class="fas fa-trash-alt"></i> ลบ
-                </button>
+      // กิจกรรม
+      const events = data.events || [];
+      $('#eventCount').textContent = events.length ? events.length + ' รายการ' : '';
+      if (data.eventsError) {
+        $('#eventList').innerHTML = `<div class="empty"><i class="fa-solid fa-triangle-exclamation"></i>${esc(data.eventsError)}</div>`;
+      } else if (!events.length) {
+        $('#eventList').innerHTML = '<div class="empty"><i class="fa-regular fa-calendar-check"></i>วันนี้ยังไม่มีกิจกรรม<br><a href="#activity" class="chip-btn" style="display:inline-block;margin-top:8px">+ บันทึกกิจกรรม</a></div>';
+      } else {
+        $('#eventList').innerHTML = events.map(ev => {
+          const link = /^https:\/\//i.test(ev.meetingLink || '') ? ev.meetingLink : '';
+          const persons = (ev.persons || []).length ? `<div class="meta"><i class="fa-solid fa-users" style="font-size:11px"></i> ${esc(ev.persons.join(', '))}</div>` : '';
+          return `<div class="event">
+              <time>${esc(ev.startLabel)}</time>
+              <div class="body">
+                <div class="title">${esc(ev.title)}</div>
+                <div class="meta">${esc(ev.timeText)}</div>
+                ${persons}
+                ${ev.details ? `<div class="desc">${esc(ev.details)}</div>` : ''}
+                ${link ? `<a class="join" href="${esc(link)}" target="_blank" rel="noopener"><i class="fa-solid fa-video"></i> เข้าร่วมประชุม</a>` : ''}
               </div>
             </div>`;
-        });
-        html += '</div>';
-        container.innerHTML = html;
-        filterEditActivities();
-      }).withFailureHandler(error => {
-        if (requestId !== recentRequestId) return;
-        if (refreshBtn) refreshBtn.disabled = false;
-        if (options.silent && recentLoadedAt) {
-          // มีรายการเดิมแสดงอยู่แล้ว → ไม่ล้างหน้าจอ แค่แจ้งสถานะ
-          setEditStatus('⚠️ อัปเดตไม่สำเร็จ กดรีเฟรชอีกครั้ง');
-          return;
-        }
-        setEditStatus('');
-        container.innerHTML = `<p style="text-align:center; padding:20px; color:#ef4444;"><i class="fas fa-exclamation-circle"></i> เกิดข้อผิดพลาด: ${escapeHtml(error && error.message)}</p>`;
-      }).getRecentActivities();
+        }).join('');
+      }
+      renderStaffToday();
+      renderMeStatus();
     }
 
-    // หลังบันทึกข้อมูลใหม่ อัปเดตรายการในแท็บแก้ไขแบบเบื้องหลัง (ผู้ใช้ไม่ต้องรอ)
-    function refreshRecentInBackground() {
-      if (recentLoadedAt) loadRecentActivities({ silent: true });
+    // รายชื่อเจ้าหน้าที่วันนี้ แยกตามประเภท (กดตัวเลขด้านบนเพื่อกรอง)
+    function renderStaffToday() {
+      const data = state.overview;
+      if (!data) return;
+      const cats = data.categories || [];
+      const busy = new Set(cats.flatMap(c => c.staff));
+      const normal = state.staff.filter(n => !busy.has(n));
+      const groups = [];
+      if (!todayFilter || todayFilter === 'normal') groups.push({ icon: '✅', label: 'ปฏิบัติงานปกติ', staff: normal });
+      cats.forEach(c => {
+        const g = c.group === 'gov' ? 'gov' : 'leave';
+        if (!todayFilter || todayFilter === g) groups.push({ icon: c.icon, label: c.label, staff: c.staff });
+      });
+      $$('#stats .stat').forEach(s => s.setAttribute('aria-pressed', String(s.dataset.filter === todayFilter)));
+      $('#staffSectionTitle').textContent = todayFilter ? { normal: 'ปฏิบัติงานปกติ', gov: 'ไปราชการ', leave: 'ลา / อื่นๆ' }[todayFilter] : 'เจ้าหน้าที่วันนี้';
+      $('#staffTotal').textContent = todayFilter ? 'แสดงทั้งหมด ✕' : `ทั้งหมด ${data.total} คน`;
+      $('#staffTotal').style.cursor = todayFilter ? 'pointer' : '';
+      const shown = groups.filter(g => g.staff.length);
+      $('#staffList').innerHTML = shown.length ? shown.map(g => `
+        <div class="cat">
+          <div class="cat-head"><span>${esc(g.icon)}</span> ${esc(g.label)} <span class="n">${g.staff.length} คน</span></div>
+          <div class="name-chips">${g.staff.map(n => `<span class="name-chip${n === state.me ? ' me' : ''}">${esc(n)}</span>`).join('')}</div>
+        </div>`).join('') : '<div class="empty">ไม่มีเจ้าหน้าที่ในกลุ่มนี้</div>';
+    }
+    $('#stats').addEventListener('click', e => {
+      const b = e.target.closest('[data-filter]');
+      if (!b) return;
+      todayFilter = todayFilter === b.dataset.filter ? '' : b.dataset.filter;
+      renderStaffToday();
+    });
+    $('#staffTotal').addEventListener('click', () => { if (todayFilter) { todayFilter = ''; renderStaffToday(); } });
+    $('#todayRefresh').addEventListener('click', () => loadOverview(false));
+
+    function renderMeStatus() {
+      const el = $('#meStatus');
+      const data = state.overview;
+      if (!state.me || !data) { el.hidden = true; return; }
+      const mine = (data.categories || []).filter(c => c.staff.includes(state.me));
+      const myEvents = (data.events || []).filter(ev => (ev.persons || []).includes(state.me));
+      const status = mine.length ? mine.map(c => `${c.icon} ${c.label}`).join(', ') : '✅ ปฏิบัติงานปกติ';
+      el.innerHTML = `<div style="flex:1"><div class="small muted">สถานะของคุณวันนี้</div><strong style="font-weight:500">${esc(status)}</strong>${myEvents.length ? `<div class="small muted">มีกิจกรรม ${myEvents.length} รายการ</div>` : ''}</div>
+        ${mine.length ? '' : '<a href="#leave" class="chip-btn">แจ้งลา/ไปราชการ</a>'}`;
+      el.hidden = false;
     }
 
-    // โหลดรายการล่วงหน้าตอนหน้าเว็บว่าง: แท็บแก้ไขเปิดได้ทันที และช่วย "ปลุก" server ให้การบันทึกครั้งแรกเร็วขึ้น
-    window.addEventListener('load', () => {
-      const prefetch = () => { if (!recentLoadedAt) loadRecentActivities({ silent: true }); };
-      if ('requestIdleCallback' in window) requestIdleCallback(prefetch, { timeout: 3000 });
-      else setTimeout(prefetch, 1500);
+    // ==========================================
+    // หน้า "บันทึกกิจกรรม"
+    // ==========================================
+    const DEFAULT_TITLES = ['ประชุม', 'ประชุมออนไลน์', 'อบรม', 'ตรวจเยี่ยม'];
+    function topTitles() {
+      const counts = store.get('qd_titles', {});
+      const used = Object.keys(counts).sort((a, b) => counts[b] - counts[a]).slice(0, 6);
+      return [...new Set([...used, ...DEFAULT_TITLES])].slice(0, 6);
+    }
+    function rememberTitle(t) {
+      const counts = store.get('qd_titles', {});
+      counts[t] = (counts[t] || 0) + 1;
+      // เก็บแค่ 30 ชื่อที่ใช้บ่อยที่สุด
+      const keep = Object.keys(counts).sort((a, b) => counts[b] - counts[a]).slice(0, 30);
+      store.set('qd_titles', Object.fromEntries(keep.map(k => [k, counts[k]])));
+    }
+    function renderTitleSuggest() {
+      const cur = $('#actTitle').value.trim();
+      $('#titleSuggest').innerHTML = topTitles().map(t => `<button type="button" class="chip${t === cur ? ' on' : ''}" data-t="${esc(t)}">${esc(t)}</button>`).join('');
+    }
+    $('#titleSuggest').addEventListener('click', e => {
+      const b = e.target.closest('[data-t]');
+      if (!b) return;
+      $('#actTitle').value = b.dataset.t;
+      renderTitleSuggest(); updateActSummary();
+      $('#actDetails').focus();
     });
 
-    function filterEditActivities() {
-      const term = document.getElementById('editSearch').value.toLowerCase();
-      document.querySelectorAll('#activityListContainer .edit-list-item').forEach(el => {
-        // ใช้ textContent แทน innerText เพื่อไม่ให้เบราว์เซอร์ต้องคำนวณ layout ทุกรายการ
-        const title  = el.querySelector('.edit-title').textContent.toLowerCase();
-        const person = el.querySelector('.edit-person').textContent.toLowerCase();
-        el.style.display = (title.includes(term) || person.includes(term)) ? 'flex' : 'none';
-      });
+    const actPicker = createPicker($('#actPicker'), { getOptions: activityOptions, onChange: () => { if (pickersReady) updateActSummary(); } });
+
+    function setActDefaults() {
+      const t = todayStr();
+      $('#actDate').value = t; $('#actEndDate').value = t;
+      $('#actTime').value = '08:30'; $('#actEndTime').value = '16:30';
+    }
+    $('#actDaySeg').addEventListener('click', e => {
+      const b = e.target.closest('[data-day]');
+      if (!b) return;
+      const d = addDays(todayStr(), Number(b.dataset.day));
+      $('#actDate').value = d; $('#actEndDate').value = d;
+      updateActSummary();
+    });
+    $('#actTimeSeg').addEventListener('click', e => {
+      const b = e.target.closest('[data-time]');
+      if (!b) return;
+      const [a, z] = b.dataset.time.split('-');
+      $('#actTime').value = a; $('#actEndTime').value = z;
+      updateActSummary();
+    });
+    // วันที่เริ่มเลื่อน → วันที่สิ้นสุดเลื่อนตามถ้าอยู่ก่อนวันเริ่ม
+    $('#actDate').addEventListener('change', () => { if ($('#actEndDate').value < $('#actDate').value) $('#actEndDate').value = $('#actDate').value; });
+    ['actTitle', 'actDate', 'actTime', 'actEndDate', 'actEndTime'].forEach(id => $('#' + id).addEventListener('input', () => { updateActSummary(); if (id === 'actTitle') renderTitleSuggest(); }));
+
+    function updateActSummary() {
+      const people = actPicker.get();
+      const d = $('#actDate').value, ed = $('#actEndDate').value, t = $('#actTime').value, et = $('#actEndTime').value;
+      $('#actCount').textContent = people.length ? people.length + ' คน' : '';
+      const t0 = todayStr();
+      $$('#actDaySeg button').forEach(b => { const v = addDays(t0, Number(b.dataset.day)); b.classList.toggle('on', d === v && ed === v); });
+      $$('#actTimeSeg button').forEach(b => b.classList.toggle('on', b.dataset.time === `${t}-${et}`));
+      const title = $('#actTitle').value.trim();
+      const when = d ? `${d === ed ? relDay(d) : thRange(d, ed)} ${t || ''}–${et || ''}` : '';
+      $('#actSummary').innerHTML = `<strong>${esc(title || 'ยังไม่ได้ใส่ชื่อกิจกรรม')}</strong>${people.length} คน · ${esc(when)}`;
     }
 
-    function openEditModal(index) {
-      const act = currentActivities[index];
+    $('#activityForm').addEventListener('submit', e => {
+      e.preventDefault();
+      const data = {
+        name1: $('#actTitle').value.trim(),
+        name2: $('#actDetails').value.trim() || '-',
+        person: actPicker.get().join(', '),
+        date: $('#actDate').value, time: $('#actTime').value,
+        endDate: $('#actEndDate').value, endTime: $('#actEndTime').value
+      };
+      if (!data.name1) { toast('ใส่ชื่อกิจกรรมก่อน', 'error', 3000); $('#actTitle').focus(); return; }
+      if (!data.person) { toast('เลือกผู้รับผิดชอบอย่างน้อย 1 คน', 'error', 3000); $('#actPicker input').focus(); return; }
+      if (!data.date || !data.time || !data.endDate || !data.endTime) { toast('ใส่วันและเวลาให้ครบ', 'error', 3000); return; }
+      if (`${data.endDate}T${data.endTime}` <= `${data.date}T${data.time}`) { toast('วันเวลาสิ้นสุดต้องอยู่หลังวันเวลาเริ่มต้น', 'error', 3000); return; }
+
+      const btn = $('#actSubmit');
+      setBusy(btn, true);
+      callApi('saveActivityData', data).then(res => {
+        if (!res || !res.success) throw new Error((res && res.message) || 'บันทึกไม่สำเร็จ');
+        rememberTitle(data.name1);
+        toast(`บันทึก "${data.name1}" แล้ว`);
+        $('#activityForm').reset();
+        actPicker.reset();
+        setActDefaults();
+        renderTitleSuggest(); updateActSummary();
+        afterSave();
+      }).catch(err => toast(errMsg(err), 'error')).finally(() => setBusy(btn, false));
+    });
+
+    // ==========================================
+    // หน้า "ลา / ไปราชการ"
+    // ==========================================
+    let leaveType = '';
+    $('#leaveTypes').innerHTML = LEAVE_TYPES.map(t => `<button type="button" class="type-btn" role="radio" aria-checked="false" data-v="${esc(t.value)}"><span class="emo">${t.icon}</span>${esc(t.label)}</button>`).join('');
+    $('#leaveTypes').addEventListener('click', e => {
+      const b = e.target.closest('[data-v]');
+      if (!b) return;
+      leaveType = b.dataset.v;
+      updateLeaveSummary();
+    });
+
+    const leavePicker = createPicker($('#leavePicker'), { getOptions: () => state.staff, onChange: () => { if (pickersReady) updateLeaveSummary(); } });
+    pickersReady = true;
+
+    function setLeaveDefaults() {
+      const t = todayStr();
+      $('#leaveStart').value = t; $('#leaveEnd').value = t;
+    }
+    $('#leaveDaySeg').addEventListener('click', e => {
+      const b = e.target.closest('[data-day]');
+      if (!b) return;
+      const d = addDays(todayStr(), Number(b.dataset.day));
+      $('#leaveStart').value = d; $('#leaveEnd').value = d;
+      updateLeaveSummary();
+    });
+    $('#leaveStart').addEventListener('change', () => { if ($('#leaveEnd').value < $('#leaveStart').value) $('#leaveEnd').value = $('#leaveStart').value; });
+    ['leaveStart', 'leaveEnd'].forEach(id => $('#' + id).addEventListener('input', updateLeaveSummary));
+
+    function updateLeaveSummary() {
+      const people = leavePicker.get();
+      const a = $('#leaveStart').value, b = $('#leaveEnd').value;
+      $('#leaveCount').textContent = people.length ? people.length + ' คน' : '';
+      $$('#leaveTypes .type-btn').forEach(x => { const on = x.dataset.v === leaveType; x.classList.toggle('on', on); x.setAttribute('aria-checked', String(on)); });
+      const t0 = todayStr();
+      $$('#leaveDaySeg button').forEach(x => { const v = addDays(t0, Number(x.dataset.day)); x.classList.toggle('on', a === v && b === v); });
+      const type = leaveTypeOf(leaveType);
+      const days = a && b && b >= a ? Math.round((new Date(b) - new Date(a)) / 864e5) + 1 : 0;
+      const who = people.length === 1 ? people[0] : people.length + ' คน';
+      $('#leaveSummary').innerHTML = `<strong>${type ? esc(type.icon + ' ' + type.value) : 'ยังไม่ได้เลือกประเภท'}</strong>${esc(who)} · ${esc(a === b ? relDay(a) : thRange(a, b))}${days > 1 ? ` (${days} วัน)` : ''}`;
+    }
+
+    $('#leaveForm').addEventListener('submit', e => {
+      e.preventDefault();
+      const data = {
+        startDate: $('#leaveStart').value, endDate: $('#leaveEnd').value,
+        staffNames: leavePicker.get(), activity: leaveType, remarks: $('#leaveRemarks').value.trim()
+      };
+      if (!data.staffNames.length) { toast('เลือกเจ้าหน้าที่อย่างน้อย 1 คน', 'error', 3000); return; }
+      if (!data.activity) { toast('เลือกประเภทก่อน', 'error', 3000); return; }
+      if (!data.startDate || !data.endDate) { toast('เลือกวันที่ก่อน', 'error', 3000); return; }
+      if (data.endDate < data.startDate) { toast('วันที่สิ้นสุดต้องไม่ก่อนวันที่เริ่ม', 'error', 3000); return; }
+
+      const btn = $('#leaveSubmit');
+      setBusy(btn, true);
+      callApi('saveLeaveData', data).then(res => {
+        if (!res || !res.success) throw new Error((res && res.message) || 'บันทึกไม่สำเร็จ');
+        const details = res.details || [];
+        const hasDup = details.some(d => d.startsWith('⚠️'));
+        if (res.savedCount > 0 && !hasDup) toast(res.message);
+        else openSheet({
+          title: res.savedCount > 0 ? 'บันทึกแล้วบางส่วน' : 'ไม่มีรายการใหม่',
+          body: `<p style="margin-bottom:10px">${esc(res.message)}</p><div class="result-list">${details.map(d => `<div>${esc(d)}</div>`).join('')}</div>`,
+          foot: '<button type="button" class="btn btn-primary" data-close>ตกลง</button>'
+        });
+        leaveType = '';
+        $('#leaveRemarks').value = '';
+        leavePicker.set(state.me ? [state.me] : []);
+        setLeaveDefaults();
+        updateLeaveSummary();
+        if (res.savedCount > 0) afterSave();
+      }).catch(err => toast(errMsg(err), 'error')).finally(() => setBusy(btn, false));
+    });
+
+    // หลังบันทึก/แก้ไข/ลบ: อัปเดตหน้าวันนี้และประวัติแบบเบื้องหลัง
+    function afterSave() {
+      loadOverview(true);
+      if (state.historyLoadedAt) loadHistory(true);
+    }
+
+    // ==========================================
+    // หน้า "ประวัติ"
+    // ==========================================
+    const HISTORY_CACHE_MS = 3 * 60 * 1000;
+    let historyReq = 0;
+    function showHistory() {
+      if (state.historyLoadedAt && Date.now() - state.historyLoadedAt < HISTORY_CACHE_MS) return;
+      loadHistory(state.historyLoadedAt > 0);
+    }
+    function loadHistory(silent) {
+      const req = ++historyReq;
+      $('#historyRefresh i').classList.add('fa-spin');
+      if (!silent || !state.historyLoadedAt) $('#historyList').innerHTML = '<div class="rec-list">' + '<div class="rec"><div class="skeleton" style="height:38px;flex:1"></div></div>'.repeat(4) + '</div>';
+      $('#historyStatus').textContent = 'กำลังอัปเดต…';
+      callApi('getRecentActivities').then(list => {
+        if (req !== historyReq) return;
+        state.history = Array.isArray(list) ? list : [];
+        state.historyLoadedAt = Date.now();
+        $('#historyStatus').textContent = 'อัปเดตล่าสุด ' + nowTime() + ' น. · แตะรายการเพื่อแก้ไขหรือลบ';
+        renderHistory();
+      }).catch(err => {
+        if (req !== historyReq) return;
+        if (silent && state.historyLoadedAt) { $('#historyStatus').textContent = '⚠️ อัปเดตไม่สำเร็จ แตะ ⟳ เพื่อลองใหม่'; return; }
+        $('#historyStatus').textContent = '';
+        $('#historyList').innerHTML = `<div class="empty"><i class="fa-solid fa-circle-exclamation"></i>${esc(errMsg(err))}<br><button type="button" class="chip-btn" style="margin-top:8px" onclick="loadHistory(false)">ลองใหม่</button></div>`;
+      }).finally(() => { if (req === historyReq) $('#historyRefresh i').classList.remove('fa-spin'); });
+    }
+    $('#historyRefresh').addEventListener('click', () => loadHistory(true));
+    $('#historySearch').addEventListener('input', renderHistory);
+    $('#historyFilters').addEventListener('click', e => {
+      const b = e.target.closest('[data-f]');
+      if (!b) return;
+      if (b.dataset.f === 'mine' && !state.me) { openMeSheet(); return; }
+      state.historyFilter = b.dataset.f;
+      $$('#historyFilters .chip').forEach(c => c.classList.toggle('on', c === b));
+      renderHistory();
+    });
+
+    function recordedDay(ts) {
+      const d = new Date(ts);
+      return isNaN(d) ? '' : d.toLocaleDateString('sv-SE', { timeZone: 'Asia/Bangkok' });
+    }
+    function recMeta(act) {
+      const when = act.type === 'activity'
+        ? `${act.startDate === act.endDate ? thDate(act.startDate) : thRange(act.startDate, act.endDate)} · ${act.startTime || ''}–${act.endTime || ''} น.`
+        : thRange(act.startDate, act.endDate);
+      return when;
+    }
+    function renderHistory() {
+      const term = $('#historySearch').value.trim().toLowerCase();
+      const f = state.historyFilter;
+      const items = state.history.map((act, i) => ({ act, i })).filter(({ act }) => {
+        if (f === 'activity' && act.type !== 'activity') return false;
+        if (f === 'leave' && act.type !== 'leave') return false;
+        if (f === 'mine' && !splitPersons(act.person).includes(state.me)) return false;
+        if (!term) return true;
+        return [act.title, act.person, act.details].join(' ').toLowerCase().includes(term);
+      });
+      if (!items.length) {
+        $('#historyList').innerHTML = `<div class="empty"><i class="fa-regular fa-folder-open"></i>${state.history.length ? 'ไม่พบรายการที่ตรงกับการค้นหา' : 'ยังไม่มีรายการ'}</div>`;
+        return;
+      }
+      // จัดกลุ่มตามวันที่บันทึก
+      const groups = [];
+      items.forEach(it => {
+        const day = recordedDay(it.act.timestamp);
+        let g = groups[groups.length - 1];
+        if (!g || g.day !== day) { g = { day, items: [] }; groups.push(g); }
+        g.items.push(it);
+      });
+      $('#historyList').innerHTML = groups.map(g => `
+        <p class="group-label">${g.day ? 'บันทึก' + esc(relDay(g.day)) : 'อื่นๆ'}</p>
+        <div class="rec-list">${g.items.map(({ act, i }) => {
+          const lt = act.type === 'leave' ? leaveTypeOf(act.title) : null;
+          const cls = act.type === 'leave' ? (lt && lt.gov ? 'gov' : 'leave') : 'activity';
+          const title = act.type === 'leave' ? `${lt ? lt.icon + ' ' : ''}${act.title} · ${act.person}` : act.title;
+          const sub = act.type === 'leave' ? recMeta(act) : `${recMeta(act)} · ${splitPersons(act.person).length} คน`;
+          // บรรทัดเพิ่มเติม (แสดงเฉพาะจอคอมพิวเตอร์): รายชื่อผู้เกี่ยวข้อง / หมายเหตุ
+          const note = act.details && act.details !== '-' && act.details !== 'ไม่มีหมายเหตุ' ? act.details : '';
+          const extra = act.type === 'leave' ? note : [splitPersons(act.person).join(', '), note].filter(Boolean).join(' · ');
+          return `<button type="button" class="rec ${cls}" data-i="${i}">
+              <span class="bar"></span>
+              <span class="body"><span class="title" style="display:block">${esc(title || '-')}</span><span class="meta" style="display:block">${esc(sub)}</span>${extra ? `<span class="extra">${esc(extra)}</span>` : ''}</span>
+              <i class="fa-solid fa-chevron-right"></i>
+            </button>`;
+        }).join('')}</div>`).join('');
+    }
+    $('#historyList').addEventListener('click', e => {
+      const b = e.target.closest('[data-i]');
+      if (b) openRecord(Number(b.dataset.i));
+    });
+
+    // รายละเอียดรายการ
+    function openRecord(i) {
+      const act = state.history[i];
       if (!act) return;
       const isLeave = act.type === 'leave';
-      const formattedStartDate = escapeHtml(act.startDate || '');
-      const formattedEndDate   = escapeHtml(act.endDate   || '');
-      const formattedStartTime = isLeave ? '' : escapeHtml(act.startTime || '');
-      const formattedEndTime   = isLeave ? '' : escapeHtml(act.endTime   || '');
-
-      let formHtml = '';
-      if (isLeave) {
-        formHtml = `
-          <div style="text-align:left; font-size:14px; font-family:'Prompt',sans-serif;">
-            <label style="display:block; color:var(--text-main); font-weight:500; margin-bottom:5px;">ชื่อเจ้าหน้าที่ (ผู้ลา)</label>
-            <select id="swal-person" class="swal2-input" style="width:100%; margin:0 0 14px; font-family:'Prompt'; height:44px;">
-              ${buildPersonOptions(staffList, [act.person]).map(o =>
-                `<option value="${escapeHtml(o.name)}" ${o.name === act.person ? 'selected' : ''}>${o.extra ? '⚠️ ' : ''}${escapeHtml(o.name)}${o.extra ? ' (ไม่อยู่ในรายชื่อ)' : ''}</option>`
-              ).join('')}
-            </select>
-            <label style="display:block; color:var(--text-main); font-weight:500; margin-bottom:5px;">ประเภทกิจกรรม / การลา</label>
-            <select id="swal-title" class="swal2-input" style="width:100%; margin:0 0 14px; font-family:'Prompt'; height:44px;">
-              <option value="ไปราชการปกติ" ${act.title==='ไปราชการปกติ'?'selected':''}>🏢 ไปราชการปกติ</option>
-              <option value="ไปราชการงานโควิด" ${act.title==='ไปราชการงานโควิด'?'selected':''}>🦠 ไปราชการงานโควิด</option>
-              <option value="ลาป่วย" ${act.title==='ลาป่วย'?'selected':''}>🏥 ลาป่วย</option>
-              <option value="ลาพักผ่อน" ${act.title==='ลาพักผ่อน'?'selected':''}>🏖️ ลาพักผ่อน</option>
-              <option value="ลากิจ" ${act.title==='ลากิจ'?'selected':''}>📝 ลากิจ</option>
-              <option value="สาย" ${act.title==='สาย'?'selected':''}>⏰ สาย</option>
-              <option value="WFH" ${act.title==='WFH'?'selected':''}>🏡 WFH</option>
-              <option value="ลาคลอดบุตร" ${act.title==='ลาคลอดบุตร'?'selected':''}>👶 ลาคลอดบุตร</option>
-            </select>
-            <label style="display:block; color:var(--text-main); font-weight:500; margin-bottom:5px;">หมายเหตุ</label>
-            <textarea id="swal-details" class="swal2-textarea" style="width:100%; margin:0 0 14px; font-family:'Prompt'; height:75px;" placeholder="ระบุหมายเหตุ">${escapeHtml(act.details || '')}</textarea>
-            <div style="display:flex; gap:14px;">
-              <div style="flex:1;"><label style="display:block; color:var(--text-main); font-weight:500; margin-bottom:5px;">วันที่เริ่ม</label><input type="date" id="swal-date" class="swal2-input" style="width:100%; margin:0; padding:0 10px;" value="${formattedStartDate}"></div>
-              <div style="flex:1;"><label style="display:block; color:var(--text-main); font-weight:500; margin-bottom:5px;">วันที่สิ้นสุด</label><input type="date" id="swal-end-date" class="swal2-input" style="width:100%; margin:0; padding:0 10px;" value="${formattedEndDate}"></div>
-            </div>
-            <input type="hidden" id="swal-time" value=""><input type="hidden" id="swal-end-time" value="">
-          </div>`;
-      } else {
-        formHtml = `
-          <div style="text-align:left; font-size:14px; font-family:'Prompt',sans-serif;">
-            <label style="display:block; color:var(--text-main); font-weight:500; margin-bottom:5px;">ชื่อกิจกรรม</label>
-            <input id="swal-title" class="swal2-input" style="width:100%; margin:0 0 14px; font-family:'Prompt';" value="${escapeHtml(act.title || '')}">
-            <label style="display:block; color:var(--text-main); font-weight:500; margin-bottom:5px;">รายละเอียด</label>
-            <textarea id="swal-details" class="swal2-textarea" style="width:100%; margin:0 0 14px; font-family:'Prompt'; height:75px;">${escapeHtml(act.details || '')}</textarea>
-            <label style="display:block; color:var(--text-main); font-weight:500; margin-bottom:5px;">ผู้รับผิดชอบ / ผู้เกี่ยวข้อง</label>
-            <input type="text" id="swal-person-search" class="swal2-input" style="width:100%; margin:0 0 8px; font-family:'Prompt'; height:40px; font-size:14px;" placeholder="🔍 ค้นหาชื่อ...">
-            <div id="swal-person-list" style="max-height:190px; overflow-y:auto; border:1px solid var(--border-color); border-radius:10px; padding:6px 12px; margin-bottom:14px; background:#f9fafb;">
-              ${buildPersonOptions(activityStaffList, splitPersons(act.person)).map(o =>
-                `<label class="swal-person-option" style="display:flex; align-items:center; gap:8px; padding:5px 0; font-weight:400; margin:0; cursor:pointer;">
-                  <input type="checkbox" class="swal-person-check" value="${escapeHtml(o.name)}" ${splitPersons(act.person).includes(o.name) ? 'checked' : ''} style="width:17px; height:17px; flex-shrink:0;">
-                  <span>${o.extra ? '⚠️ ' : ''}${escapeHtml(o.name)}${o.extra ? ' <span style="color:#d97706;">(ไม่อยู่ในรายชื่อ)</span>' : ''}</span>
-                </label>`
-              ).join('')}
-            </div>
-            <div style="display:flex; gap:14px; margin-bottom:14px;">
-              <div style="flex:1;"><label style="display:block; color:var(--text-main); font-weight:500; margin-bottom:5px;">วันที่เริ่ม</label><input type="date" id="swal-date" class="swal2-input" style="width:100%; margin:0; padding:0 10px;" value="${formattedStartDate}"></div>
-              <div style="flex:1;"><label style="display:block; color:var(--text-main); font-weight:500; margin-bottom:5px;">เวลาเริ่ม</label><input type="time" id="swal-time" class="swal2-input" style="width:100%; margin:0; padding:0 10px;" value="${formattedStartTime}"></div>
-            </div>
-            <div style="display:flex; gap:14px;">
-              <div style="flex:1;"><label style="display:block; color:var(--text-main); font-weight:500; margin-bottom:5px;">วันที่สิ้นสุด</label><input type="date" id="swal-end-date" class="swal2-input" style="width:100%; margin:0; padding:0 10px;" value="${formattedEndDate}"></div>
-              <div style="flex:1;"><label style="display:block; color:var(--text-main); font-weight:500; margin-bottom:5px;">เวลาสิ้นสุด</label><input type="time" id="swal-end-time" class="swal2-input" style="width:100%; margin:0; padding:0 10px;" value="${formattedEndTime}"></div>
-            </div>
-          </div>`;
-      }
-
-      Swal.fire({
-        title: `<span style="font-size:1.2rem; color:var(--primary-dark); font-family:'Prompt',sans-serif;"><i class="fas fa-edit"></i> แก้ไขข้อมูล${isLeave ? 'การลา' : 'กิจกรรม'}</span>`,
-        html: formHtml,
-        showCancelButton: true,
-        confirmButtonText: '<i class="fas fa-save"></i> บันทึกการแก้ไข',
-        cancelButtonText: '<i class="fas fa-times"></i> ยกเลิก',
-        confirmButtonColor: '#0d9488',
-        cancelButtonColor: '#ef4444',
-        width: 500,
-        didOpen: () => {
-          const search = document.getElementById('swal-person-search');
-          if (!search) return;
-          search.addEventListener('input', () => {
-            const term = search.value.toLowerCase();
-            document.querySelectorAll('#swal-person-list .swal-person-option').forEach(el => {
-              el.style.display = el.textContent.toLowerCase().includes(term) ? 'flex' : 'none';
-            });
-          });
-        },
-        preConfirm: () => {
-          const value = {
-            type: act.type, rowNum: act.rowNum, eventId: act.eventId,
-            // ใช้ยืนยันว่าแก้ถูกแถว
-            timestamp: act.timestamp, originalTitle: act.title, originalPerson: act.person,
-            name1: document.getElementById('swal-title').value,
-            name2: document.getElementById('swal-details').value,
-            person: isLeave
-              ? document.getElementById('swal-person').value
-              : [...document.querySelectorAll('#swal-person-list .swal-person-check:checked')].map(c => c.value).join(', '),
-            date: document.getElementById('swal-date').value,
-            time: document.getElementById('swal-time').value,
-            endDate: document.getElementById('swal-end-date').value,
-            endTime: document.getElementById('swal-end-time').value
-          };
-          if (!value.name1 || !value.person || !value.date || !value.endDate || (!isLeave && (!value.time || !value.endTime))) {
-            Swal.showValidationMessage('กรุณากรอกข้อมูลให้ครบ');
-            return false;
-          }
-          if (isLeave ? value.endDate < value.date : `${value.endDate}T${value.endTime}` <= `${value.date}T${value.time}`) {
-            Swal.showValidationMessage(isLeave ? 'วันที่สิ้นสุดต้องไม่ก่อนวันที่เริ่ม' : 'วันเวลาสิ้นสุดต้องอยู่หลังวันเวลาเริ่มต้น');
-            return false;
-          }
-          return value;
-        }
-      }).then(result => {
-        if (result.isConfirmed) {
-          Swal.fire({ title: 'กำลังบันทึก...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
-          google.script.run.withSuccessHandler(res => {
-            if (res.success) {
-              Swal.fire({ title: 'แก้ไขสำเร็จ!', text: res.message, icon: 'success', confirmButtonColor: '#0d9488' });
-              loadRecentActivities({ silent: true });
-            } else {
-              Swal.fire({ title: 'เกิดข้อผิดพลาด', text: res.message, icon: 'error', confirmButtonColor: '#ef4444' });
-            }
-          }).withFailureHandler(error => {
-            showServerError(error);
-            loadRecentActivities({ silent: true });
-          }).updateActivityRecord(result.value);
-        }
+      const lt = isLeave ? leaveTypeOf(act.title) : null;
+      const badge = isLeave ? `<span class="badge ${lt && lt.gov ? 'gov' : 'leave'}">${lt && lt.gov ? 'ไปราชการ' : 'ลา / อื่นๆ'}</span>` : '<span class="badge activity">กิจกรรม</span>';
+      const body = `
+        <div style="margin-bottom:6px">${badge}</div>
+        <div style="font-size:18px;font-weight:600;margin-bottom:6px">${esc((lt ? lt.icon + ' ' : '') + (act.title || '-'))}</div>
+        <div class="detail-row"><i class="fa-regular fa-calendar"></i><div>${esc(recMeta(act))}</div></div>
+        <div class="detail-row"><i class="fa-solid fa-users"></i><div>${esc(splitPersons(act.person).join(', ') || '-')}</div></div>
+        ${act.details && act.details !== '-' ? `<div class="detail-row"><i class="fa-regular fa-note-sticky"></i><div>${esc(act.details)}</div></div>` : ''}`;
+      const sheet = openSheet({
+        title: 'รายละเอียด',
+        body,
+        foot: `<button type="button" class="btn btn-danger" data-del><i class="fa-regular fa-trash-can"></i> ลบ</button>
+               <button type="button" class="btn btn-primary" data-edit><i class="fa-regular fa-pen-to-square"></i> แก้ไข</button>`
       });
+      $('[data-edit]', sheet).onclick = () => openEdit(act);
+      $('[data-del]', sheet).onclick = () => deleteRecord(act);
     }
 
-    function deleteRecord(index) {
-      const act = currentActivities[index];
-      if (!act) return;
-      Swal.fire({
-        title: 'ยืนยันการลบข้อมูล?',
-        text: 'คุณต้องการลบรายการนี้ใช่หรือไม่?',
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#ef4444',
-        cancelButtonColor: '#9ca3af',
-        confirmButtonText: '<i class="fas fa-trash-alt"></i> ใช่, ลบเลย',
-        cancelButtonText: 'ยกเลิก'
-      }).then(result => {
-        if (result.isConfirmed) {
-          Swal.fire({ title: 'กำลังลบข้อมูล...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
-          google.script.run.withSuccessHandler(res => {
-            if (res.success) {
-              Swal.fire({ title: 'ลบสำเร็จ!', text: res.message, icon: 'success', confirmButtonColor: '#0d9488' });
-              loadRecentActivities({ silent: true });
-            } else {
-              Swal.fire({ title: 'เกิดข้อผิดพลาด', text: res.message, icon: 'error', confirmButtonColor: '#ef4444' });
-            }
-          }).withFailureHandler(error => {
-            showServerError(error);
-            loadRecentActivities({ silent: true });
-          }).deleteActivityRecord(act);
+    // แก้ไขรายการ
+    function openEdit(act) {
+      const isLeave = act.type === 'leave';
+      const wrap = document.createElement('div');
+      let picker;
+      let type = act.title;
+      if (isLeave) {
+        wrap.innerHTML = `
+          <div class="field"><span class="label">เจ้าหน้าที่ (ผู้ลา)</span><div data-picker></div></div>
+          <div class="field"><span class="label">ประเภท</span><div class="type-grid" data-types></div></div>
+          <div class="grid-2" style="margin-bottom:14px">
+            <div class="field"><label for="eDate">ตั้งแต่</label><input type="date" class="input" id="eDate" value="${esc(act.startDate)}"></div>
+            <div class="field"><label for="eEndDate">ถึง</label><input type="date" class="input" id="eEndDate" value="${esc(act.endDate)}"></div>
+          </div>
+          <div class="field"><label for="eDetails">หมายเหตุ</label><textarea class="input" id="eDetails" rows="2">${esc(act.details === '-' ? '' : act.details)}</textarea></div>
+          <p class="error-text" data-err hidden></p>`;
+        picker = createPicker($('[data-picker]', wrap), { single: true, getOptions: () => state.staff });
+        picker.set([act.person]);
+        const typesEl = $('[data-types]', wrap);
+        const types = leaveTypeOf(act.title) ? LEAVE_TYPES : [...LEAVE_TYPES, { value: act.title, icon: '📋', label: act.title }];
+        const renderTypes = () => {
+          typesEl.innerHTML = types.map(t => `<button type="button" class="type-btn${t.value === type ? ' on' : ''}" data-v="${esc(t.value)}" role="radio" aria-checked="${t.value === type}"><span class="emo">${t.icon}</span>${esc(t.label)}</button>`).join('');
+        };
+        renderTypes();
+        typesEl.addEventListener('click', e => { const b = e.target.closest('[data-v]'); if (b) { type = b.dataset.v; renderTypes(); } });
+      } else {
+        wrap.innerHTML = `
+          <div class="field"><label for="eTitle">ชื่อกิจกรรม</label><input class="input" id="eTitle" value="${esc(act.title)}"></div>
+          <div class="field"><label for="eDetails">รายละเอียด</label><textarea class="input" id="eDetails" rows="2">${esc(act.details === '-' ? '' : act.details)}</textarea></div>
+          <div class="field"><span class="label">ผู้รับผิดชอบ / ผู้เกี่ยวข้อง</span><div data-picker></div></div>
+          <div class="grid-2" style="margin-bottom:10px">
+            <div class="field"><label for="eDate">วันที่เริ่ม</label><input type="date" class="input" id="eDate" value="${esc(act.startDate)}"></div>
+            <div class="field"><label for="eTime">เวลาเริ่ม</label><input type="time" class="input" id="eTime" value="${esc(act.startTime)}"></div>
+          </div>
+          <div class="grid-2">
+            <div class="field"><label for="eEndDate">วันที่สิ้นสุด</label><input type="date" class="input" id="eEndDate" value="${esc(act.endDate)}"></div>
+            <div class="field"><label for="eEndTime">เวลาสิ้นสุด</label><input type="time" class="input" id="eEndTime" value="${esc(act.endTime)}"></div>
+          </div>
+          <p class="error-text" data-err hidden></p>`;
+        picker = createPicker($('[data-picker]', wrap), { getOptions: activityOptions });
+        picker.set(splitPersons(act.person));
+      }
+      const foot = document.createElement('div');
+      foot.style.cssText = 'display:flex; gap:10px; width:100%';
+      foot.innerHTML = '<button type="button" class="btn btn-ghost" data-close>ยกเลิก</button><button type="button" class="btn btn-primary" data-save style="flex:1"><i class="fa-solid fa-check"></i> บันทึกการแก้ไข</button>';
+      openSheet({ title: isLeave ? 'แก้ไขการลา / ไปราชการ' : 'แก้ไขกิจกรรม', body: wrap, foot });
+
+      const showErr = msg => { const el = $('[data-err]', wrap); el.textContent = msg; el.hidden = false; el.scrollIntoView({ block: 'nearest' }); };
+      $('[data-save]', foot).onclick = () => {
+        const value = {
+          type: act.type, rowNum: act.rowNum, eventId: act.eventId,
+          timestamp: act.timestamp, originalTitle: act.title, originalPerson: act.person, // ใช้ยืนยันว่าแก้ถูกแถว
+          name1: isLeave ? type : $('#eTitle', wrap).value.trim(),
+          name2: $('#eDetails', wrap).value.trim() || (isLeave ? '' : '-'),
+          person: picker.get().join(', '),
+          date: $('#eDate', wrap).value,
+          time: isLeave ? '' : $('#eTime', wrap).value,
+          endDate: $('#eEndDate', wrap).value,
+          endTime: isLeave ? '' : $('#eEndTime', wrap).value
+        };
+        if (!value.name1 || !value.person || !value.date || !value.endDate || (!isLeave && (!value.time || !value.endTime))) return showErr('กรอกข้อมูลให้ครบก่อนบันทึก');
+        if (isLeave ? value.endDate < value.date : `${value.endDate}T${value.endTime}` <= `${value.date}T${value.time}`) {
+          return showErr(isLeave ? 'วันที่สิ้นสุดต้องไม่ก่อนวันที่เริ่ม' : 'วันเวลาสิ้นสุดต้องอยู่หลังวันเวลาเริ่มต้น');
         }
-      });
+        const btn = $('[data-save]', foot);
+        setBusy(btn, true);
+        callApi('updateActivityRecord', value).then(res => {
+          if (!res || !res.success) throw new Error((res && res.message) || 'แก้ไขไม่สำเร็จ');
+          closeSheet();
+          toast('แก้ไขข้อมูลแล้ว');
+          afterSave();
+        }).catch(err => {
+          setBusy(btn, false);
+          showErr(errMsg(err));
+          loadHistory(true);
+        });
+      };
+    }
+
+    async function deleteRecord(act) {
+      const label = act.type === 'leave' ? `${act.title} · ${act.person}` : act.title;
+      const ok = await confirmSheet({ title: 'ลบรายการนี้?', text: `"${label}" จะถูกลบออกจากระบบและปฏิทิน กู้คืนไม่ได้`, okText: 'ลบรายการ', danger: true });
+      if (!ok) return;
+      toast('กำลังลบ…', 'info', 1500);
+      callApi('deleteActivityRecord', act).then(res => {
+        if (!res || !res.success) throw new Error((res && res.message) || 'ลบไม่สำเร็จ');
+        toast('ลบรายการแล้ว');
+        state.history = state.history.filter(x => x !== act);
+        renderHistory();
+        afterSave();
+      }).catch(err => { toast(errMsg(err), 'error'); loadHistory(true); });
+    }
+
+    // ==========================================
+    // เริ่มทำงาน
+    // ==========================================
+    $('#meBtn').addEventListener('click', openMeSheet);
+    document.addEventListener('click', e => { if (e.target.closest('[data-action="pick-me"]')) openMeSheet(); });
+    window.addEventListener('offline', () => toast('ไม่มีการเชื่อมต่ออินเทอร์เน็ต', 'error'));
+    window.addEventListener('online', () => toast('เชื่อมต่ออินเทอร์เน็ตแล้ว', 'info', 2000));
+
+    applyTheme();
+    setActDefaults();
+    setLeaveDefaults();
+    if (state.me) leavePicker.set([state.me]);
+    renderTitleSuggest();
+    updateActSummary();
+    updateLeaveSummary();
+    const year = Number(todayStr().slice(0, 4));
+    if (year > 2025) $('#footerYear').textContent = '–' + year;
+
+    // แสดงข้อมูลวันนี้ที่เก็บไว้ทันที (ถ้าเป็นของวันนี้) แล้วอัปเดตจาก server
+    const cachedOverview = store.get('qd_overview', null);
+    if (cachedOverview && cachedOverview.date === todayStr()) {
+      state.overview = cachedOverview;
+      renderOverview(cachedOverview);
+      $('#todayStatus').textContent = 'กำลังอัปเดต…';
+    }
+    renderMe();
+    showView();
+    loadStaff();
+    loadOverview(!!state.overview);
+
+    // โหลดประวัติล่วงหน้าตอนว่าง → เปิดหน้าประวัติได้ทันที
+    window.addEventListener('load', () => {
+      const prefetch = () => { if (!state.historyLoadedAt) loadHistory(true); };
+      if ('requestIdleCallback' in window) requestIdleCallback(prefetch, { timeout: 4000 }); else setTimeout(prefetch, 2500);
+    });
+
+    // ติดตั้งเป็นแอป (PWA): เปิดได้เร็วขึ้น และใช้งานแบบเต็มจอ
+    if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
+      window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
     }
   </script>
 </body>
