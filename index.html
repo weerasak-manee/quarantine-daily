@@ -296,6 +296,12 @@
     .detail-row i { width: 18px; color: var(--muted); margin-top: 4px; text-align: center; }
     .detail-row div { flex: 1; min-width: 0; white-space: pre-line; overflow-wrap: anywhere; }
     .result-list { font-size: 14px; display: flex; flex-direction: column; gap: 4px; }
+    /* เตือนข้อมูลขัดกัน */
+    .conflict { margin-top: 12px; padding: 10px 12px; border-radius: 10px; background: var(--leave-soft); color: var(--leave-text); font-size: 13px; line-height: 1.5; }
+    .conflict strong { display: block; font-weight: 600; margin-bottom: 2px; }
+    .toast .toast-act { pointer-events: auto; font-weight: 600; color: #5DCAA5; padding: 0 4px; white-space: nowrap; }
+    :root[data-theme="dark"] .toast .toast-act { color: #0F6E56; }
+    .rec.trash .bar { background: var(--muted); }
 
     /* ===================== ข้อความแจ้ง (toast) ===================== */
     .toast-wrap { position: fixed; left: 0; right: 0; bottom: calc(var(--nav-h) + var(--safe-b) + 12px); z-index: 60; display: flex; flex-direction: column; align-items: center; gap: 8px; pointer-events: none; padding: 0 16px; }
@@ -455,6 +461,7 @@
         <div class="card fg-people">
           <p class="section-label"><i class="fa-solid fa-users"></i> ผู้รับผิดชอบ / ผู้เกี่ยวข้อง <span class="count" id="actCount"></span></p>
           <div id="actPicker"></div>
+          <div class="conflict" id="actConflict" role="status" hidden></div>
         </div>
 
         <div class="card fg-date">
@@ -494,6 +501,7 @@
         <div class="card fg-people">
           <p class="section-label"><i class="fa-solid fa-user-check"></i> เจ้าหน้าที่ <span class="count" id="leaveCount"></span></p>
           <div id="leavePicker"></div>
+          <div class="conflict" id="leaveConflict" role="status" hidden></div>
         </div>
 
         <div class="card fg-info">
@@ -537,6 +545,7 @@
         <button type="button" class="chip" data-f="activity">กิจกรรม</button>
         <button type="button" class="chip" data-f="leave">ลา / ไปราชการ</button>
         <button type="button" class="chip" data-f="mine">ของฉัน</button>
+        <button type="button" class="chip" data-f="trash"><i class="fa-regular fa-trash-can"></i> ถังขยะ</button>
       </div>
       <p class="status-line" id="historyStatus"></p>
       <div id="historyList"></div>
@@ -628,12 +637,13 @@
     function nowTime() { return new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Bangkok' }); }
 
     // ข้อความแจ้งด้านล่าง
-    function toast(message, type = 'success', ms = 3200) {
+    function toast(message, type = 'success', ms = 3200, action) {
       const icon = { success: 'fa-circle-check', error: 'fa-circle-exclamation', info: 'fa-circle-info' }[type] || 'fa-circle-info';
       const el = document.createElement('div');
       el.className = 'toast ' + type;
       el.setAttribute('role', type === 'error' ? 'alert' : 'status');
-      el.innerHTML = `<i class="fa-solid ${icon}"></i><div style="flex:1">${esc(message)}</div>`;
+      el.innerHTML = `<i class="fa-solid ${icon}"></i><div style="flex:1">${esc(message)}</div>${action ? `<button type="button" class="toast-act">${esc(action.label)}</button>` : ''}`;
+      if (action) $('.toast-act', el).onclick = (e) => { e.stopPropagation(); el.remove(); action.onClick(); };
       el.onclick = () => el.remove();
       $('#toasts').appendChild(el);
       setTimeout(() => el.remove(), type === 'error' ? Math.max(ms, 6000) : ms);
@@ -691,7 +701,7 @@
         let answered = false;
         const sheet = openSheet({
           title,
-          body: `<p style="font-size:15px">${esc(text)}</p>`,
+          body: `<p style="font-size:15px; white-space:pre-line">${esc(text)}</p>`,
           foot: `<button type="button" class="btn btn-ghost" data-close>ยกเลิก</button>
                  <button type="button" class="btn ${danger ? 'btn-danger' : 'btn-primary'}" data-ok>${esc(okText)}</button>`,
           onClose: () => { if (!answered) resolve(false); }
@@ -710,7 +720,10 @@
       overview: null,
       history: [],
       historyLoadedAt: 0,
-      historyFilter: 'all'
+      historyFilter: 'all',
+      schedule: store.get('qd_schedule', null), // ตารางลา/ไปราชการ/กิจกรรมล่วงหน้า ใช้เตือนข้อมูลขัดกัน
+      trash: [],
+      trashLoadedAt: 0
     };
     let pickersReady = false; // ตัวเลือกรายชื่อทั้งสองหน้าสร้างเสร็จแล้ว
     const activityOptions = () => [...state.staff, 'ผู้ที่สนใจ'];
@@ -984,6 +997,80 @@
     }
 
     // ==========================================
+    // เตือนข้อมูลขัดกัน
+    // ใช้ตารางงานที่โหลดเก็บไว้ล่วงหน้า (เบื้องหลัง) → ตรวจในเครื่องทันที ไม่ต้องรอ server ตอนกดบันทึก
+    // ==========================================
+    const SCHEDULE_TTL = 10 * 60 * 1000;
+    let scheduleLoading = false;
+    function loadSchedule(force) {
+      const sc = state.schedule;
+      if (scheduleLoading || (!force && sc && sc.loadedOn === todayStr() && Date.now() - (sc._at || 0) < SCHEDULE_TTL)) return;
+      scheduleLoading = true;
+      callApi('getSchedule').then(d => {
+        if (!d || !Array.isArray(d.staff)) return;
+        d._at = Date.now();
+        d.loadedOn = todayStr();
+        state.schedule = d;
+        store.set('qd_schedule', d);
+        refreshConflicts();
+      }).catch(() => { /* ไม่มีตารางงานก็บันทึกได้ตามปกติ แค่ไม่มีคำเตือน */ }).finally(() => { scheduleLoading = false; });
+    }
+    const overlaps = (a1, a2, b1, b2) => a1 <= b2 && b1 <= a2;
+    const shortRange = (a, b) => {
+      if (a === b) return thDate(a, false);
+      if (a.slice(0, 7) === b.slice(0, 7)) return `${Number(a.slice(8))}–${thDate(b, false)}`; // เดือนเดียวกัน: 24–26 พ.ย.
+      return `${thDate(a, false)} – ${thDate(b, false)}`;
+    };
+
+    /**
+     * หาข้อมูลที่อาจขัดกัน
+     * kind = 'activity' → คนที่ลา/ไปราชการ หรือมีกิจกรรมอื่นเวลาเดียวกัน
+     * kind = 'leave'    → คนที่มีบันทึกลา/ไปราชการประเภทอื่น หรือมีกิจกรรมในช่วงวันลา
+     */
+    function findConflicts({ kind, people, start, end, startTime, endTime, type, excludeId }) {
+      const sc = state.schedule;
+      if (!sc || !start || !end || !Array.isArray(sc.staff)) return [];
+      const out = [];
+      const startDT = `${start}T${startTime || '00:00'}`, endDT = `${end}T${endTime || '23:59'}`;
+      people.filter(n => n && n !== 'ผู้ที่สนใจ').forEach(n => {
+        sc.staff.forEach(x => {
+          if (x.n !== n || (excludeId && x.id === excludeId) || !overlaps(start, end, x.s, x.e)) return;
+          if (kind === 'leave' && x.a === type) return; // ประเภทเดียวกัน server ตรวจซ้ำให้อยู่แล้ว
+          const lt = leaveTypeOf(x.a);
+          out.push(`${n} · ${lt ? lt.icon + ' ' : ''}${x.a} ${shortRange(x.s, x.e)}`);
+        });
+        (sc.acts || []).forEach(x => {
+          if (!x.p.includes(n) || (excludeId && x.id === excludeId)) return;
+          const clash = kind === 'leave'
+            ? overlaps(start, end, x.s, x.e)
+            : `${x.s}T${x.st}` < endDT && startDT < `${x.e}T${x.et}`;
+          if (clash) out.push(`${n} · มีกิจกรรม "${x.t}" ${thDate(x.s, false)} ${x.st} น.`);
+        });
+      });
+      return [...new Set(out)];
+    }
+    function renderConflictBox(el, list) {
+      el.hidden = !list.length;
+      if (list.length) el.innerHTML = `<strong>⚠️ ข้อมูลที่อาจขัดกัน</strong>${list.slice(0, 8).map(x => `<div>${esc(x)}</div>`).join('')}${list.length > 8 ? `<div>และอีก ${list.length - 8} รายการ</div>` : ''}`;
+    }
+    function actConflicts() {
+      return findConflicts({ kind: 'activity', people: actPicker.get(), start: $('#actDate').value, end: $('#actEndDate').value, startTime: $('#actTime').value, endTime: $('#actEndTime').value });
+    }
+    function leaveConflicts() {
+      return findConflicts({ kind: 'leave', people: leavePicker.get(), start: $('#leaveStart').value, end: $('#leaveEnd').value, type: leaveType });
+    }
+    function refreshConflicts() {
+      if (!pickersReady) return;
+      renderConflictBox($('#actConflict'), actConflicts());
+      renderConflictBox($('#leaveConflict'), leaveConflicts());
+    }
+    // มีข้อมูลขัดกัน → ถามยืนยันก่อนบันทึก
+    function confirmConflicts(list) {
+      if (!list.length) return Promise.resolve(true);
+      return confirmSheet({ title: 'มีข้อมูลที่อาจขัดกัน', text: list.slice(0, 10).join('\n') + '\n\nต้องการบันทึกต่อหรือไม่?', okText: 'บันทึกต่อ' });
+    }
+
+    // ==========================================
     // หน้า "บันทึกกิจกรรม"
     // ==========================================
     const DEFAULT_TITLES = ['ประชุม', 'ประชุมออนไลน์', 'อบรม', 'ตรวจเยี่ยม'];
@@ -1046,6 +1133,7 @@
       const title = $('#actTitle').value.trim();
       const when = d ? `${d === ed ? relDay(d) : thRange(d, ed)} ${t || ''}–${et || ''}` : '';
       $('#actSummary').innerHTML = `<strong>${esc(title || 'ยังไม่ได้ใส่ชื่อกิจกรรม')}</strong>${people.length} คน · ${esc(when)}`;
+      if (pickersReady) renderConflictBox($('#actConflict'), actConflicts());
     }
 
     $('#activityForm').addEventListener('submit', e => {
@@ -1062,6 +1150,10 @@
       if (!data.date || !data.time || !data.endDate || !data.endTime) { toast('ใส่วันและเวลาให้ครบ', 'error', 3000); return; }
       if (`${data.endDate}T${data.endTime}` <= `${data.date}T${data.time}`) { toast('วันเวลาสิ้นสุดต้องอยู่หลังวันเวลาเริ่มต้น', 'error', 3000); return; }
 
+      confirmConflicts(actConflicts()).then(ok => { if (ok) sendActivity(data); });
+    });
+
+    function sendActivity(data) {
       const btn = $('#actSubmit');
       setBusy(btn, true);
       callApi('saveActivityData', data).then(res => {
@@ -1074,7 +1166,7 @@
         renderTitleSuggest(); updateActSummary();
         afterSave();
       }).catch(err => toast(errMsg(err), 'error')).finally(() => setBusy(btn, false));
-    });
+    }
 
     // ==========================================
     // หน้า "ลา / ไปราชการ"
@@ -1116,6 +1208,7 @@
       const days = a && b && b >= a ? Math.round((new Date(b) - new Date(a)) / 864e5) + 1 : 0;
       const who = people.length === 1 ? people[0] : people.length + ' คน';
       $('#leaveSummary').innerHTML = `<strong>${type ? esc(type.icon + ' ' + type.value) : 'ยังไม่ได้เลือกประเภท'}</strong>${esc(who)} · ${esc(a === b ? relDay(a) : thRange(a, b))}${days > 1 ? ` (${days} วัน)` : ''}`;
+      if (pickersReady) renderConflictBox($('#leaveConflict'), leaveConflicts());
     }
 
     $('#leaveForm').addEventListener('submit', e => {
@@ -1129,6 +1222,10 @@
       if (!data.startDate || !data.endDate) { toast('เลือกวันที่ก่อน', 'error', 3000); return; }
       if (data.endDate < data.startDate) { toast('วันที่สิ้นสุดต้องไม่ก่อนวันที่เริ่ม', 'error', 3000); return; }
 
+      confirmConflicts(leaveConflicts()).then(ok => { if (ok) sendLeave(data); });
+    });
+
+    function sendLeave(data) {
       const btn = $('#leaveSubmit');
       setBusy(btn, true);
       callApi('saveLeaveData', data).then(res => {
@@ -1148,12 +1245,23 @@
         updateLeaveSummary();
         if (res.savedCount > 0) afterSave();
       }).catch(err => toast(errMsg(err), 'error')).finally(() => setBusy(btn, false));
-    });
+    }
 
     // หลังบันทึก/แก้ไข/ลบ: อัปเดตหน้าวันนี้และประวัติแบบเบื้องหลัง
     function afterSave() {
       loadOverview(true);
+      loadSchedule(true);
       if (state.historyLoadedAt) loadHistory(true);
+      state.trashLoadedAt = 0;
+      if (state.historyFilter === 'trash') loadTrash();
+    }
+
+    // ต้องเลือกชื่อของฉันก่อนแก้ไข/ลบ/กู้คืน (เพื่อบันทึกว่าใครทำ)
+    function requireMe() {
+      if (state.me) return true;
+      toast('เลือกชื่อของคุณก่อน ระบบจะบันทึกว่าใครแก้ไขหรือลบ', 'info', 4000);
+      openMeSheet();
+      return false;
     }
 
     // ==========================================
@@ -1168,12 +1276,13 @@
     function loadHistory(silent) {
       const req = ++historyReq;
       $('#historyRefresh i').classList.add('fa-spin');
-      if (!silent || !state.historyLoadedAt) $('#historyList').innerHTML = '<div class="rec-list">' + '<div class="rec"><div class="skeleton" style="height:38px;flex:1"></div></div>'.repeat(4) + '</div>';
-      $('#historyStatus').textContent = 'กำลังอัปเดต…';
+      if (state.historyFilter !== 'trash' && (!silent || !state.historyLoadedAt)) $('#historyList').innerHTML = '<div class="rec-list">' + '<div class="rec"><div class="skeleton" style="height:38px;flex:1"></div></div>'.repeat(4) + '</div>';
+      if (state.historyFilter !== 'trash') $('#historyStatus').textContent = 'กำลังอัปเดต…';
       callApi('getRecentActivities').then(list => {
         if (req !== historyReq) return;
         state.history = Array.isArray(list) ? list : [];
         state.historyLoadedAt = Date.now();
+        if (state.historyFilter === 'trash') return;
         $('#historyStatus').textContent = 'อัปเดตล่าสุด ' + nowTime() + ' น. · แตะรายการเพื่อแก้ไขหรือลบ';
         renderHistory();
       }).catch(err => {
@@ -1183,7 +1292,7 @@
         $('#historyList').innerHTML = `<div class="empty"><i class="fa-solid fa-circle-exclamation"></i>${esc(errMsg(err))}<br><button type="button" class="chip-btn" style="margin-top:8px" onclick="loadHistory(false)">ลองใหม่</button></div>`;
       }).finally(() => { if (req === historyReq) $('#historyRefresh i').classList.remove('fa-spin'); });
     }
-    $('#historyRefresh').addEventListener('click', () => loadHistory(true));
+    $('#historyRefresh').addEventListener('click', () => { if (state.historyFilter === 'trash') loadTrash(); else loadHistory(true); });
     $('#historySearch').addEventListener('input', renderHistory);
     $('#historyFilters').addEventListener('click', e => {
       const b = e.target.closest('[data-f]');
@@ -1191,8 +1300,75 @@
       if (b.dataset.f === 'mine' && !state.me) { openMeSheet(); return; }
       state.historyFilter = b.dataset.f;
       $$('#historyFilters .chip').forEach(c => c.classList.toggle('on', c === b));
+      if (b.dataset.f === 'trash' && (!state.trashLoadedAt || Date.now() - state.trashLoadedAt > HISTORY_CACHE_MS)) loadTrash();
       renderHistory();
     });
+
+    // ==========================================
+    // ถังขยะ (รายการที่ถูกลบ กู้คืนได้)
+    // ==========================================
+    function loadTrash() {
+      $('#historyStatus').textContent = 'กำลังโหลดถังขยะ…';
+      if (!state.trashLoadedAt) $('#historyList').innerHTML = '<div class="rec-list">' + '<div class="rec"><div class="skeleton" style="height:38px;flex:1"></div></div>'.repeat(3) + '</div>';
+      callApi('getTrash').then(list => {
+        state.trash = Array.isArray(list) ? list : [];
+        state.trashLoadedAt = Date.now();
+        if (state.historyFilter === 'trash') { $('#historyStatus').textContent = 'รายการที่ถูกลบล่าสุด · แตะเพื่อกู้คืน'; renderHistory(); }
+      }).catch(err => {
+        if (state.historyFilter === 'trash') { $('#historyStatus').textContent = ''; $('#historyList').innerHTML = `<div class="empty"><i class="fa-solid fa-circle-exclamation"></i>${esc(errMsg(err))}</div>`; }
+      });
+    }
+    function trashTime(ts) {
+      const d = new Date(ts);
+      if (isNaN(d)) return '';
+      return `${relDay(d.toLocaleDateString('sv-SE', { timeZone: 'Asia/Bangkok' }))} ${d.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Bangkok' })} น.`;
+    }
+    function renderTrash() {
+      if (!state.trashLoadedAt) return;
+      const term = $('#historySearch').value.trim().toLowerCase();
+      const items = state.trash.map((t, i) => ({ t, i })).filter(({ t }) => !term || [t.summary, t.actor].join(' ').toLowerCase().includes(term));
+      if (!items.length) {
+        $('#historyList').innerHTML = `<div class="empty"><i class="fa-regular fa-trash-can"></i>${state.trash.length ? 'ไม่พบรายการที่ตรงกับการค้นหา' : 'ถังขยะว่าง'}</div>`;
+        return;
+      }
+      $('#historyList').innerHTML = `<div class="rec-list">${items.map(({ t, i }) => {
+        const r = t.record || {};
+        const lt = r.type === 'leave' ? leaveTypeOf(r.title) : null;
+        const title = r.type === 'leave' ? `${lt ? lt.icon + ' ' : ''}${r.title} · ${r.person}` : r.title;
+        return `<button type="button" class="rec trash" data-t="${i}">
+            <span class="bar"></span>
+            <span class="body"><span class="title" style="display:block">${esc(title || '-')}</span><span class="meta" style="display:block">${esc(recMeta(r))} · ลบโดย ${esc(t.actor)} ${esc(trashTime(t.deletedAt))}</span></span>
+            <i class="fa-solid fa-rotate-left"></i>
+          </button>`;
+      }).join('')}</div>`;
+    }
+    function openTrashItem(i) {
+      const t = state.trash[i];
+      if (!t) return;
+      const r = t.record || {};
+      const sheet = openSheet({
+        title: 'รายการที่ถูกลบ',
+        body: `
+          <div style="font-size:18px;font-weight:600;margin-bottom:6px">${esc(r.title || '-')}</div>
+          <div class="detail-row"><i class="fa-regular fa-calendar"></i><div>${esc(recMeta(r))}</div></div>
+          <div class="detail-row"><i class="fa-solid fa-users"></i><div>${esc(splitPersons(r.person).join(', ') || '-')}</div></div>
+          ${r.details && !/^(-|ไม่มีหมายเหตุ)$/.test(r.details) ? `<div class="detail-row"><i class="fa-regular fa-note-sticky"></i><div>${esc(r.details)}</div></div>` : ''}
+          <div class="detail-row"><i class="fa-regular fa-trash-can"></i><div>ลบโดย ${esc(t.actor)} · ${esc(trashTime(t.deletedAt))}</div></div>`,
+        foot: '<button type="button" class="btn btn-ghost" data-close>ปิด</button><button type="button" class="btn btn-primary" data-restore><i class="fa-solid fa-rotate-left"></i> กู้คืน</button>'
+      });
+      $('[data-restore]', sheet).onclick = () => { if (requireMe()) restoreTrash(t.id, $('[data-restore]', sheet)); };
+    }
+    function restoreTrash(id, btn) {
+      if (btn) setBusy(btn, true, 'กำลังกู้คืน…');
+      callApi('restoreRecord', { id, actor: state.me }).then(res => {
+        if (!res || !res.success) throw new Error((res && res.message) || 'กู้คืนไม่สำเร็จ');
+        closeSheet();
+        toast('กู้คืนรายการแล้ว');
+        state.trash = state.trash.filter(x => x.id !== id);
+        if (state.historyFilter === 'trash') renderTrash();
+        afterSave();
+      }).catch(err => { if (btn) setBusy(btn, false); toast(errMsg(err), 'error'); });
+    }
 
     function recordedDay(ts) {
       const d = new Date(ts);
@@ -1205,6 +1381,7 @@
       return when;
     }
     function renderHistory() {
+      if (state.historyFilter === 'trash') return renderTrash();
       const term = $('#historySearch').value.trim().toLowerCase();
       const f = state.historyFilter;
       const items = state.history.map((act, i) => ({ act, i })).filter(({ act }) => {
@@ -1246,6 +1423,8 @@
     $('#historyList').addEventListener('click', e => {
       const b = e.target.closest('[data-i]');
       if (b) openRecord(Number(b.dataset.i));
+      const t = e.target.closest('[data-t]');
+      if (t) openTrashItem(Number(t.dataset.t));
     });
 
     // รายละเอียดรายการ
@@ -1267,8 +1446,8 @@
         foot: `<button type="button" class="btn btn-danger" data-del><i class="fa-regular fa-trash-can"></i> ลบ</button>
                <button type="button" class="btn btn-primary" data-edit><i class="fa-regular fa-pen-to-square"></i> แก้ไข</button>`
       });
-      $('[data-edit]', sheet).onclick = () => openEdit(act);
-      $('[data-del]', sheet).onclick = () => deleteRecord(act);
+      $('[data-edit]', sheet).onclick = () => { if (requireMe()) openEdit(act); };
+      $('[data-del]', sheet).onclick = () => { if (requireMe()) deleteRecord(act); };
     }
 
     // แก้ไขรายการ
@@ -1319,6 +1498,7 @@
       openSheet({ title: isLeave ? 'แก้ไขการลา / ไปราชการ' : 'แก้ไขกิจกรรม', body: wrap, foot });
 
       const showErr = msg => { const el = $('[data-err]', wrap); el.textContent = msg; el.hidden = false; el.scrollIntoView({ block: 'nearest' }); };
+      let warnedKey = '';
       $('[data-save]', foot).onclick = () => {
         const value = {
           type: act.type, rowNum: act.rowNum, eventId: act.eventId,
@@ -1329,11 +1509,24 @@
           date: $('#eDate', wrap).value,
           time: isLeave ? '' : $('#eTime', wrap).value,
           endDate: $('#eEndDate', wrap).value,
-          endTime: isLeave ? '' : $('#eEndTime', wrap).value
+          endTime: isLeave ? '' : $('#eEndTime', wrap).value,
+          actor: state.me
         };
         if (!value.name1 || !value.person || !value.date || !value.endDate || (!isLeave && (!value.time || !value.endTime))) return showErr('กรอกข้อมูลให้ครบก่อนบันทึก');
         if (isLeave ? value.endDate < value.date : `${value.endDate}T${value.endTime}` <= `${value.date}T${value.time}`) {
           return showErr(isLeave ? 'วันที่สิ้นสุดต้องไม่ก่อนวันที่เริ่ม' : 'วันเวลาสิ้นสุดต้องอยู่หลังวันเวลาเริ่มต้น');
+        }
+        // ข้อมูลขัดกัน: เตือนครั้งแรก กดบันทึกอีกครั้งเพื่อยืนยัน
+        const conflicts = findConflicts({ kind: act.type, people: picker.get(), start: value.date, end: value.endDate, startTime: value.time, endTime: value.endTime, type: value.name1, excludeId: act.eventId });
+        const key = JSON.stringify(conflicts);
+        if (conflicts.length && warnedKey !== key) {
+          warnedKey = key;
+          let box = $('.conflict', wrap);
+          if (!box) { box = document.createElement('div'); box.className = 'conflict'; $('[data-err]', wrap).before(box); }
+          renderConflictBox(box, conflicts);
+          box.insertAdjacentHTML('beforeend', '<div style="margin-top:4px">กด "บันทึกการแก้ไข" อีกครั้งเพื่อยืนยัน</div>');
+          box.scrollIntoView({ block: 'nearest' });
+          return;
         }
         const btn = $('[data-save]', foot);
         setBusy(btn, true);
@@ -1352,12 +1545,12 @@
 
     async function deleteRecord(act) {
       const label = act.type === 'leave' ? `${act.title} · ${act.person}` : act.title;
-      const ok = await confirmSheet({ title: 'ลบรายการนี้?', text: `"${label}" จะถูกลบออกจากระบบและปฏิทิน กู้คืนไม่ได้`, okText: 'ลบรายการ', danger: true });
+      const ok = await confirmSheet({ title: 'ลบรายการนี้?', text: `"${label}" จะถูกย้ายไปถังขยะ และลบออกจากปฏิทิน\nกู้คืนได้ภายหลังที่ ประวัติ > ถังขยะ`, okText: 'ลบรายการ', danger: true });
       if (!ok) return;
       toast('กำลังลบ…', 'info', 1500);
-      callApi('deleteActivityRecord', act).then(res => {
+      callApi('deleteActivityRecord', Object.assign({}, act, { actor: state.me })).then(res => {
         if (!res || !res.success) throw new Error((res && res.message) || 'ลบไม่สำเร็จ');
-        toast('ลบรายการแล้ว');
+        toast('ย้ายไปถังขยะแล้ว', 'success', 6000, res.trashId ? { label: 'เลิกทำ', onClick: () => restoreTrash(res.trashId) } : null);
         state.history = state.history.filter(x => x !== act);
         renderHistory();
         afterSave();
@@ -1396,7 +1589,7 @@
 
     // โหลดประวัติล่วงหน้าตอนว่าง → เปิดหน้าประวัติได้ทันที
     window.addEventListener('load', () => {
-      const prefetch = () => { if (!state.historyLoadedAt) loadHistory(true); };
+      const prefetch = () => { loadSchedule(false); if (!state.historyLoadedAt) loadHistory(true); };
       if ('requestIdleCallback' in window) requestIdleCallback(prefetch, { timeout: 4000 }); else setTimeout(prefetch, 2500);
     });
 
