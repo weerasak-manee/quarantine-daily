@@ -1,0 +1,1329 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <!-- อนุญาตให้ซูมได้ (ช่วยผู้ที่สายตาไม่ดี) -->
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>ระบบบันทึกข้อมูลกลุ่มด่านฯ | สคร.12</title>
+  <meta name="description" content="ระบบบันทึกกิจกรรมและการลาของเจ้าหน้าที่ กลุ่มด่านควบคุมโรคติดต่อระหว่างประเทศ สคร.12">
+  <meta name="theme-color" content="#0F6E56">
+
+  <!-- ติดตั้งเป็นแอปบนหน้าจอ (PWA) -->
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="ด่านฯ สคร.12">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+  <link rel="preconnect" href="https://script.google.com">
+  <link rel="preconnect" href="https://script.googleusercontent.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <style>
+    /* ===================== สี (สว่าง / มืด) ===================== */
+    :root {
+      color-scheme: light;
+      --bg: #F3F5F4;
+      --surface: #FFFFFF;
+      --surface-2: #EEF2F0;
+      --text: #17201D;
+      --muted: #5F6B66;
+      --border: #DFE5E2;
+      --primary: #0F6E56;
+      --primary-hover: #0B5A46;
+      --on-primary: #FFFFFF;
+      --primary-soft: #E1F5EE;
+      --primary-text: #085041;
+      --gov-soft: #E6F1FB;   --gov-text: #0C447C;   --gov: #378ADD;
+      --leave-soft: #FAEEDA; --leave-text: #633806; --leave: #EF9F27;
+      --danger: #C0392B;     --danger-soft: #FCEBEB;
+      --warn-text: #854F0B;
+      --shadow: 0 1px 2px rgba(16,24,20,.06), 0 4px 16px rgba(16,24,20,.06);
+      --radius: 14px;
+      --nav-h: 64px;
+      --safe-b: env(safe-area-inset-bottom, 0px);
+    }
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) {
+        color-scheme: dark;
+        --bg: #111513; --surface: #1C211F; --surface-2: #272E2B; --text: #F1F3F2; --muted: #A9B1AD; --border: #343C38;
+        --primary: #5DCAA5; --primary-hover: #7DD6B7; --on-primary: #04342C; --primary-soft: rgba(93,202,165,.15); --primary-text: #9FE1CB;
+        --gov-soft: rgba(55,138,221,.18); --gov-text: #B5D4F4; --leave-soft: rgba(239,159,39,.18); --leave-text: #FAC775;
+        --danger: #F09595; --danger-soft: rgba(226,75,74,.18); --warn-text: #FAC775;
+        --shadow: 0 1px 2px rgba(0,0,0,.4);
+      }
+    }
+    :root[data-theme="dark"] {
+      color-scheme: dark;
+      --bg: #111513; --surface: #1C211F; --surface-2: #272E2B; --text: #F1F3F2; --muted: #A9B1AD; --border: #343C38;
+      --primary: #5DCAA5; --primary-hover: #7DD6B7; --on-primary: #04342C; --primary-soft: rgba(93,202,165,.15); --primary-text: #9FE1CB;
+      --gov-soft: rgba(55,138,221,.18); --gov-text: #B5D4F4; --leave-soft: rgba(239,159,39,.18); --leave-text: #FAC775;
+      --danger: #F09595; --danger-soft: rgba(226,75,74,.18); --warn-text: #FAC775;
+      --shadow: 0 1px 2px rgba(0,0,0,.4);
+    }
+
+    /* ===================== พื้นฐาน ===================== */
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    html { -webkit-text-size-adjust: 100%; }
+    body {
+      font-family: 'Prompt', system-ui, sans-serif; font-size: 15px; line-height: 1.55;
+      background: var(--bg); color: var(--text); min-height: 100vh;
+      padding-bottom: calc(var(--nav-h) + var(--safe-b));
+    }
+    button, input, textarea, select { font: inherit; color: inherit; }
+    button { cursor: pointer; background: none; border: 0; }
+    a { color: inherit; text-decoration: none; }
+    :focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+    .muted { color: var(--muted); }
+    .small { font-size: 13px; }
+    [hidden] { display: none !important; }
+    .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+    /* ===================== แถบบน ===================== */
+    .appbar {
+      position: sticky; top: 0; z-index: 20;
+      background: color-mix(in srgb, var(--surface) 92%, transparent);
+      -webkit-backdrop-filter: saturate(1.4) blur(10px); backdrop-filter: saturate(1.4) blur(10px);
+      border-bottom: 1px solid var(--border);
+      padding: calc(env(safe-area-inset-top, 0px) + 10px) 16px 10px;
+    }
+    .appbar-inner { max-width: 720px; margin: 0 auto; display: flex; align-items: center; gap: 10px; }
+    .appbar img { width: 36px; height: 36px; border-radius: 50%; background: #fff; flex-shrink: 0; }
+    .appbar-title { flex: 1; min-width: 0; line-height: 1.25; }
+    .appbar-title strong { display: block; font-size: 15px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .appbar-title span { display: block; font-size: 12px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .icon-btn {
+      width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center;
+      color: var(--muted); flex-shrink: 0;
+    }
+    .icon-btn:hover { background: var(--surface-2); }
+    .me-btn {
+      display: flex; align-items: center; gap: 6px; height: 36px; padding: 0 12px 0 4px; border-radius: 999px;
+      background: var(--surface-2); font-size: 13px; max-width: 130px;
+    }
+    .me-btn .avatar { width: 28px; height: 28px; border-radius: 50%; background: var(--primary); color: var(--on-primary); display: grid; place-items: center; font-size: 13px; font-weight: 600; flex-shrink: 0; }
+    .me-btn .me-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+    /* ===================== เนื้อหา ===================== */
+    main { max-width: 720px; margin: 0 auto; padding: 16px 16px 24px; }
+    .view { display: none; animation: fade .18s ease-out; }
+    .view.active { display: block; }
+    @keyframes fade { from { transform: translateY(6px); } to { transform: none; } } /* ไม่ใช้ opacity: ถ้าเบราว์เซอร์หยุดแอนิเมชันไว้ เนื้อหาจะยังมองเห็น */
+    .view-head { display: flex; align-items: center; gap: 8px; margin-bottom: 14px; }
+    .view-head h1 { font-size: 20px; font-weight: 600; flex: 1; }
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; box-shadow: var(--shadow); }
+    .card + .card, .section + .section { margin-top: 14px; }
+    .section-label { font-size: 13px; color: var(--muted); font-weight: 500; margin: 0 0 8px; display: flex; align-items: center; gap: 6px; }
+    .section-label .count { margin-left: auto; color: var(--primary-text); font-weight: 500; }
+
+    /* ===================== ฟอร์ม ===================== */
+    .field { margin-bottom: 14px; }
+    .field:last-child { margin-bottom: 0; }
+    .field label, .field .label { display: block; font-size: 13px; font-weight: 500; color: var(--muted); margin-bottom: 6px; }
+    .input, textarea.input, select.input {
+      width: 100%; min-height: 46px; padding: 10px 12px; font-size: 16px; /* 16px กัน iPhone ซูมอัตโนมัติ */
+      background: var(--surface); border: 1px solid var(--border); border-radius: 10px; outline: none;
+      transition: border-color .15s, box-shadow .15s;
+    }
+    textarea.input { resize: vertical; min-height: 72px; }
+    .input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-soft); }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .grid-2 .field { margin-bottom: 0; }
+    .hint { font-size: 12px; color: var(--muted); margin-top: 6px; }
+    .error-text { font-size: 13px; color: var(--danger); margin-top: 6px; }
+
+    /* ปุ่มชิป */
+    .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+    .chip {
+      display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 6px 12px;
+      border-radius: 999px; border: 1px solid var(--border); background: var(--surface);
+      font-size: 14px; line-height: 1.3; text-align: left; transition: background .12s, border-color .12s;
+    }
+    .chip:hover { border-color: var(--primary); }
+    .chip.on { background: var(--primary-soft); border-color: var(--primary); color: var(--primary-text); font-weight: 500; }
+    .chip.warn { border-style: dashed; color: var(--warn-text); }
+    .chip .fa-xmark { font-size: 12px; opacity: .7; }
+    .chip-btn { font-size: 13px; color: var(--primary-text); padding: 6px 10px; border-radius: 8px; white-space: nowrap; }
+    .chip-btn:hover { background: var(--primary-soft); }
+
+    /* แถบเลือก (segmented) */
+    .seg { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
+    .seg button { flex: 1 1 auto; min-height: 38px; padding: 6px 10px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface); font-size: 14px; }
+    .seg button.on { background: var(--primary-soft); border-color: var(--primary); color: var(--primary-text); font-weight: 500; }
+
+    /* ตัวเลือกรายชื่อ */
+    .picker .pk-sel { display: flex; flex-wrap: wrap; gap: 6px; min-height: 36px; align-items: center; margin-bottom: 10px; }
+    .picker .pk-tools { display: flex; gap: 4px; align-items: center; margin-bottom: 10px; }
+    .search { position: relative; flex: 1; }
+    .search i { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--muted); font-size: 14px; pointer-events: none; }
+    .search .input { padding-left: 36px; min-height: 42px; }
+    .picker .pk-opts { display: flex; flex-wrap: wrap; gap: 6px; max-height: 232px; overflow-y: auto; padding: 2px; overscroll-behavior: contain; }
+    .picker .pk-opts .chip { font-size: 13.5px; min-height: 34px; padding: 5px 11px; }
+
+    /* ประเภทการลา */
+    .type-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+    .type-btn {
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+      min-height: 70px; padding: 8px 4px; border-radius: 12px; border: 1px solid var(--border); background: var(--surface);
+      font-size: 13px; text-align: center; line-height: 1.25;
+    }
+    .type-btn .emo { font-size: 22px; line-height: 1; }
+    .type-btn.on { background: var(--primary-soft); border-color: var(--primary); color: var(--primary-text); font-weight: 500; }
+
+    /* แถบบันทึกด้านล่าง */
+    .submit-bar {
+      position: sticky; bottom: calc(var(--nav-h) + var(--safe-b) + 8px); z-index: 5; margin-top: 14px;
+      background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 10px 10px 10px 14px;
+      display: flex; align-items: center; gap: 10px; box-shadow: 0 6px 24px rgba(0,0,0,.12);
+    }
+    .submit-bar .summary { flex: 1; min-width: 0; font-size: 13px; color: var(--muted); line-height: 1.35; }
+    .submit-bar .summary strong { color: var(--text); font-weight: 500; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 46px; padding: 0 18px;
+      border-radius: 12px; font-weight: 500; font-size: 15px; white-space: nowrap; transition: background .15s, transform .08s;
+    }
+    .btn:active { transform: scale(.98); }
+    .btn-primary { background: var(--primary); color: var(--on-primary); }
+    .btn-primary:hover { background: var(--primary-hover); }
+    .btn-primary[disabled] { opacity: .7; cursor: progress; }
+    .btn-ghost { border: 1px solid var(--border); background: var(--surface); }
+    .btn-danger { background: var(--danger-soft); color: var(--danger); }
+    .btn-block { width: 100%; }
+
+    /* ===================== หน้า "วันนี้" ===================== */
+    .hello { font-size: 13px; color: var(--muted); }
+    .hello strong { display: block; font-size: 20px; color: var(--text); font-weight: 600; }
+    .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 14px 0; }
+    .stat { border-radius: 12px; padding: 12px 8px; text-align: center; border: 2px solid transparent; }
+    .stat b { display: block; font-size: 26px; font-weight: 600; line-height: 1.15; }
+    .stat span { font-size: 12.5px; }
+    .stat.normal { background: var(--primary-soft); color: var(--primary-text); }
+    .stat.gov { background: var(--gov-soft); color: var(--gov-text); }
+    .stat.other { background: var(--leave-soft); color: var(--leave-text); }
+    .stat[aria-pressed="true"] { border-color: currentColor; }
+    .me-status { display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-radius: 12px; background: var(--surface-2); font-size: 14px; margin-bottom: 14px; }
+    .quick { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 18px; }
+    .quick .btn { min-height: 52px; }
+    .cat { padding: 10px 0; border-top: 1px solid var(--border); }
+    .cat:first-child { border-top: 0; padding-top: 0; }
+    .cat-head { font-size: 14px; font-weight: 500; margin-bottom: 6px; display: flex; gap: 6px; align-items: center; }
+    .cat-head .n { margin-left: auto; color: var(--muted); font-weight: 400; font-size: 13px; }
+    .name-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+    .name-chip { font-size: 12.5px; padding: 3px 10px; border-radius: 999px; background: var(--surface-2); }
+    .name-chip.me { background: var(--primary-soft); color: var(--primary-text); font-weight: 500; }
+    .event { display: flex; gap: 12px; padding: 12px 0; border-top: 1px solid var(--border); }
+    .event:first-child { border-top: 0; padding-top: 0; }
+    .event:last-child { padding-bottom: 0; }
+    .event time { width: 50px; flex-shrink: 0; font-weight: 600; font-size: 14px; color: var(--primary-text); }
+    .event .body { flex: 1; min-width: 0; }
+    .event .title { font-weight: 500; }
+    .event .meta { font-size: 13px; color: var(--muted); }
+    .event .desc { font-size: 13px; color: var(--muted); margin-top: 2px; white-space: pre-line; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+    .event .join { display: inline-flex; align-items: center; gap: 6px; margin-top: 6px; font-size: 13px; padding: 5px 12px; border-radius: 8px; background: var(--primary); color: var(--on-primary); text-decoration: none; }
+    .empty { text-align: center; padding: 22px 10px; color: var(--muted); font-size: 14px; }
+    .empty i { font-size: 26px; display: block; margin-bottom: 8px; opacity: .6; }
+    .setup-card { display: flex; gap: 12px; align-items: center; background: var(--primary-soft); color: var(--primary-text); border-radius: 12px; padding: 12px 14px; margin-bottom: 14px; font-size: 14px; }
+    .setup-card .btn { min-height: 38px; padding: 0 12px; font-size: 14px; }
+    .skeleton { background: linear-gradient(90deg, var(--surface-2), var(--border), var(--surface-2)); background-size: 200% 100%; animation: sk 1.2s infinite; border-radius: 8px; }
+    @keyframes sk { to { background-position: -200% 0; } }
+
+    /* ===================== หน้า "ประวัติ" ===================== */
+    .filters { display: flex; gap: 6px; overflow-x: auto; margin: 10px -16px 12px; padding: 0 16px; scrollbar-width: none; }
+    .filters::-webkit-scrollbar { display: none; }
+    .filters .chip { flex-shrink: 0; }
+    .group-label { font-size: 12.5px; color: var(--muted); font-weight: 500; margin: 14px 2px 6px; }
+    .rec-list { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+    .rec { display: flex; gap: 12px; align-items: center; width: 100%; padding: 12px 14px; text-align: left; border-top: 1px solid var(--border); }
+    .rec:first-child { border-top: 0; }
+    .rec:hover { background: var(--surface-2); }
+    .rec .bar { width: 4px; align-self: stretch; border-radius: 4px; background: var(--primary); flex-shrink: 0; }
+    .rec.leave .bar { background: var(--leave); }
+    .rec.gov .bar { background: var(--gov); }
+    .rec .body { flex: 1; min-width: 0; }
+    .rec .title { font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .rec .meta { font-size: 12.5px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .rec .fa-chevron-right { color: var(--muted); font-size: 12px; }
+    .badge { display: inline-block; font-size: 11.5px; padding: 2px 8px; border-radius: 6px; font-weight: 500; }
+    .badge.activity { background: var(--primary-soft); color: var(--primary-text); }
+    .badge.leave { background: var(--leave-soft); color: var(--leave-text); }
+    .badge.gov { background: var(--gov-soft); color: var(--gov-text); }
+    .status-line { font-size: 12px; color: var(--muted); }
+
+    /* ===================== เมนูด้านล่าง ===================== */
+    .bottom-nav {
+      position: fixed; left: 0; right: 0; bottom: 0; z-index: 30;
+      background: var(--surface); border-top: 1px solid var(--border);
+      padding-bottom: var(--safe-b);
+    }
+    .bottom-nav .inner { max-width: 560px; margin: 0 auto; display: grid; grid-template-columns: repeat(4, 1fr); height: var(--nav-h); }
+    .nav-btn { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; font-size: 11.5px; color: var(--muted); position: relative; }
+    .nav-btn i { font-size: 19px; }
+    .nav-btn.active { color: var(--primary); font-weight: 500; }
+    .nav-btn.active::before { content: ''; position: absolute; top: 0; left: 30%; right: 30%; height: 3px; border-radius: 0 0 3px 3px; background: var(--primary); }
+
+    /* ===================== แผ่นเลื่อนขึ้น (bottom sheet) ===================== */
+    .sheet-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,.45); z-index: 50; display: flex; align-items: flex-end; justify-content: center; animation: bd .15s ease-out; }
+    @keyframes bd { from { opacity: 0; } }
+    .sheet {
+      background: var(--surface); width: 100%; max-width: 560px; max-height: 92vh; display: flex; flex-direction: column;
+      border-radius: 20px 20px 0 0; animation: up .22s cubic-bezier(.2,.8,.2,1); padding-bottom: var(--safe-b);
+    }
+    @keyframes up { from { transform: translateY(40px); } }
+    @media (min-width: 640px) { .sheet-backdrop { align-items: center; } .sheet { border-radius: 20px; max-height: 86vh; } }
+    .sheet-head { display: flex; align-items: center; gap: 8px; padding: 14px 16px 10px; border-bottom: 1px solid var(--border); }
+    .sheet-head h2 { flex: 1; font-size: 17px; font-weight: 600; }
+    .sheet-body { padding: 16px; overflow-y: auto; overscroll-behavior: contain; }
+    .sheet-foot { display: flex; gap: 10px; padding: 12px 16px 14px; border-top: 1px solid var(--border); }
+    .sheet-foot .btn { flex: 1; }
+    .detail-row { display: flex; gap: 10px; padding: 8px 0; font-size: 14px; }
+    .detail-row i { width: 18px; color: var(--muted); margin-top: 4px; text-align: center; }
+    .detail-row div { flex: 1; min-width: 0; white-space: pre-line; overflow-wrap: anywhere; }
+    .result-list { font-size: 14px; display: flex; flex-direction: column; gap: 4px; }
+
+    /* ===================== ข้อความแจ้ง (toast) ===================== */
+    .toast-wrap { position: fixed; left: 0; right: 0; bottom: calc(var(--nav-h) + var(--safe-b) + 12px); z-index: 60; display: flex; flex-direction: column; align-items: center; gap: 8px; pointer-events: none; padding: 0 16px; }
+    .toast {
+      pointer-events: auto; max-width: 480px; width: 100%; display: flex; gap: 10px; align-items: flex-start;
+      background: #1C211F; color: #F1F3F2; padding: 12px 14px; border-radius: 12px; font-size: 14px;
+      box-shadow: 0 8px 28px rgba(0,0,0,.25); animation: up .2s ease-out;
+    }
+    :root[data-theme="dark"] .toast { background: #F1F3F2; color: #17201D; }
+    .toast i { margin-top: 3px; }
+    .toast.success i { color: #5DCAA5; }
+    .toast.error i { color: #F09595; }
+
+    .footer { text-align: center; font-size: 12px; color: var(--muted); padding: 24px 0 8px; }
+
+    @media (max-width: 360px) {
+      .type-grid { grid-template-columns: repeat(2, 1fr); }
+      .me-btn .me-name { display: none; }
+      .me-btn { padding-right: 4px; }
+    }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+  </style>
+</head>
+<body>
+  <!-- ==================== แถบบน ==================== -->
+  <header class="appbar">
+    <div class="appbar-inner">
+      <img src="https://lh3.googleusercontent.com/d/1G8Tczg6khRru0l84RSKE0qnj7clQfaQL=s96-rw" alt="สคร.12" width="36" height="36" decoding="async">
+      <div class="appbar-title">
+        <strong>ระบบบันทึกข้อมูลกลุ่มด่านฯ</strong>
+        <span id="appbarDate">สคร.12</span>
+      </div>
+      <button type="button" class="icon-btn" id="themeBtn" aria-label="เปลี่ยนโหมดสี" title="เปลี่ยนโหมดสี"><i class="fa-solid fa-circle-half-stroke"></i></button>
+      <button type="button" class="me-btn" id="meBtn" aria-label="เลือกชื่อของฉัน">
+        <span class="avatar" id="meAvatar"><i class="fa-solid fa-user" style="font-size:12px"></i></span>
+        <span class="me-name" id="meName">เลือกชื่อ</span>
+      </button>
+    </div>
+  </header>
+
+  <main>
+    <!-- ============ หน้า: วันนี้ ============ -->
+    <section class="view" id="view-today" aria-labelledby="todayTitle">
+      <div class="view-head">
+        <div class="hello" style="flex:1"><span id="helloText">สวัสดีครับ</span><strong id="todayTitle">ภาพรวมวันนี้</strong></div>
+        <button type="button" class="icon-btn" id="todayRefresh" aria-label="โหลดข้อมูลวันนี้ใหม่"><i class="fa-solid fa-rotate-right"></i></button>
+      </div>
+
+      <div class="setup-card" id="setupCard" hidden>
+        <i class="fa-solid fa-user-check" style="font-size:20px"></i>
+        <div style="flex:1">เลือกชื่อของคุณไว้ ระบบจะเลือกให้อัตโนมัติทุกครั้งที่บันทึก</div>
+        <button type="button" class="btn btn-primary" data-action="pick-me">เลือกชื่อ</button>
+      </div>
+
+      <div id="meStatus" class="me-status" hidden></div>
+
+      <div class="stats" id="stats">
+        <button type="button" class="stat normal" data-filter="normal" aria-pressed="false"><b id="statNormal">–</b><span>ปฏิบัติงาน</span></button>
+        <button type="button" class="stat gov" data-filter="gov" aria-pressed="false"><b id="statGov">–</b><span>ไปราชการ</span></button>
+        <button type="button" class="stat other" data-filter="leave" aria-pressed="false"><b id="statOther">–</b><span>ลา / อื่นๆ</span></button>
+      </div>
+
+      <div class="quick">
+        <a href="#activity" class="btn btn-primary"><i class="fa-solid fa-plus"></i> บันทึกกิจกรรม</a>
+        <a href="#leave" class="btn btn-ghost"><i class="fa-regular fa-calendar-minus"></i> ลา / ไปราชการ</a>
+      </div>
+
+      <div class="section">
+        <p class="section-label"><i class="fa-regular fa-calendar"></i> กิจกรรมวันนี้ <span class="count" id="eventCount"></span></p>
+        <div class="card" id="eventList"><div class="skeleton" style="height:56px"></div></div>
+      </div>
+
+      <div class="section">
+        <p class="section-label"><i class="fa-solid fa-users"></i> <span id="staffSectionTitle">เจ้าหน้าที่วันนี้</span> <span class="count" id="staffTotal"></span></p>
+        <div class="card" id="staffList"><div class="skeleton" style="height:40px"></div></div>
+      </div>
+      <p class="status-line" id="todayStatus" style="text-align:center; margin-top:10px;"></p>
+
+      <p class="footer">© 2025<span id="footerYear"></span> กลุ่มด่านควบคุมโรคติดต่อระหว่างประเทศและกักกันโรค สคร.12</p>
+    </section>
+
+    <!-- ============ หน้า: บันทึกกิจกรรม ============ -->
+    <section class="view" id="view-activity" aria-labelledby="activityTitle">
+      <div class="view-head"><h1 id="activityTitle">บันทึกกิจกรรม</h1></div>
+      <form id="activityForm" novalidate>
+        <div class="card">
+          <div class="field">
+            <label for="actTitle">ชื่อกิจกรรม</label>
+            <input class="input" id="actTitle" autocomplete="off" placeholder="ประชุมคณะทำงาน" maxlength="200">
+            <div class="chips" id="titleSuggest" style="margin-top:8px"></div>
+          </div>
+          <div class="field">
+            <label for="actDetails">รายละเอียด</label>
+            <textarea class="input" id="actDetails" rows="2" placeholder="สถานที่ หัวข้อ หรือรายละเอียดเพิ่มเติม"></textarea>
+          </div>
+        </div>
+
+        <div class="card">
+          <p class="section-label"><i class="fa-solid fa-users"></i> ผู้รับผิดชอบ / ผู้เกี่ยวข้อง <span class="count" id="actCount"></span></p>
+          <div id="actPicker"></div>
+        </div>
+
+        <div class="card">
+          <p class="section-label"><i class="fa-regular fa-clock"></i> วันและเวลา</p>
+          <div class="seg" id="actDaySeg">
+            <button type="button" data-day="0">วันนี้</button>
+            <button type="button" data-day="1">พรุ่งนี้</button>
+          </div>
+          <div class="seg" id="actTimeSeg">
+            <button type="button" data-time="08:30-16:30">ทั้งวัน</button>
+            <button type="button" data-time="08:30-12:00">เช้า</button>
+            <button type="button" data-time="13:00-16:30">บ่าย</button>
+          </div>
+          <div class="grid-2" style="margin-bottom:10px">
+            <div class="field"><label for="actDate">วันที่เริ่ม</label><input type="date" class="input" id="actDate"></div>
+            <div class="field"><label for="actTime">เวลาเริ่ม</label><input type="time" class="input" id="actTime"></div>
+          </div>
+          <div class="grid-2">
+            <div class="field"><label for="actEndDate">วันที่สิ้นสุด</label><input type="date" class="input" id="actEndDate"></div>
+            <div class="field"><label for="actEndTime">เวลาสิ้นสุด</label><input type="time" class="input" id="actEndTime"></div>
+          </div>
+        </div>
+
+        <div class="submit-bar">
+          <div class="summary" id="actSummary"><strong>ยังไม่ได้กรอกข้อมูล</strong></div>
+          <button type="submit" class="btn btn-primary" id="actSubmit"><i class="fa-solid fa-check"></i> บันทึก</button>
+        </div>
+      </form>
+    </section>
+
+    <!-- ============ หน้า: ลา / ไปราชการ ============ -->
+    <section class="view" id="view-leave" aria-labelledby="leaveTitle">
+      <div class="view-head"><h1 id="leaveTitle">บันทึกการลา / ไปราชการ</h1></div>
+      <form id="leaveForm" novalidate>
+        <div class="card">
+          <p class="section-label"><i class="fa-solid fa-user-check"></i> เจ้าหน้าที่ <span class="count" id="leaveCount"></span></p>
+          <div id="leavePicker"></div>
+        </div>
+
+        <div class="card">
+          <p class="section-label"><i class="fa-solid fa-list"></i> ประเภท</p>
+          <div class="type-grid" id="leaveTypes" role="radiogroup" aria-label="ประเภทการลา"></div>
+        </div>
+
+        <div class="card">
+          <p class="section-label"><i class="fa-regular fa-calendar"></i> วันที่</p>
+          <div class="seg" id="leaveDaySeg">
+            <button type="button" data-day="0">วันนี้</button>
+            <button type="button" data-day="1">พรุ่งนี้</button>
+          </div>
+          <div class="grid-2">
+            <div class="field"><label for="leaveStart">ตั้งแต่</label><input type="date" class="input" id="leaveStart"></div>
+            <div class="field"><label for="leaveEnd">ถึง</label><input type="date" class="input" id="leaveEnd"></div>
+          </div>
+          <div class="field" style="margin-top:12px">
+            <label for="leaveRemarks">หมายเหตุ (ถ้ามี)</label>
+            <textarea class="input" id="leaveRemarks" rows="2" placeholder="สถานที่ไปราชการ หรือเหตุผล"></textarea>
+          </div>
+        </div>
+
+        <div class="submit-bar">
+          <div class="summary" id="leaveSummary"><strong>ยังไม่ได้เลือกข้อมูล</strong></div>
+          <button type="submit" class="btn btn-primary" id="leaveSubmit"><i class="fa-solid fa-check"></i> บันทึก</button>
+        </div>
+      </form>
+    </section>
+
+    <!-- ============ หน้า: ประวัติ ============ -->
+    <section class="view" id="view-history" aria-labelledby="historyTitle">
+      <div class="view-head">
+        <h1 id="historyTitle">ประวัติการบันทึก</h1>
+        <button type="button" class="icon-btn" id="historyRefresh" aria-label="โหลดรายการใหม่"><i class="fa-solid fa-rotate-right"></i></button>
+      </div>
+      <div class="search"><i class="fa-solid fa-magnifying-glass"></i><input type="search" class="input" id="historySearch" placeholder="ค้นหาชื่อกิจกรรมหรือชื่อคน" aria-label="ค้นหารายการ"></div>
+      <div class="filters" id="historyFilters" role="tablist">
+        <button type="button" class="chip on" data-f="all">ทั้งหมด</button>
+        <button type="button" class="chip" data-f="activity">กิจกรรม</button>
+        <button type="button" class="chip" data-f="leave">ลา / ไปราชการ</button>
+        <button type="button" class="chip" data-f="mine">ของฉัน</button>
+      </div>
+      <p class="status-line" id="historyStatus"></p>
+      <div id="historyList"></div>
+    </section>
+  </main>
+
+  <!-- ==================== เมนูด้านล่าง ==================== -->
+  <nav class="bottom-nav" aria-label="เมนูหลัก">
+    <div class="inner">
+      <a href="#today" class="nav-btn" data-view="today"><i class="fa-solid fa-house"></i>วันนี้</a>
+      <a href="#activity" class="nav-btn" data-view="activity"><i class="fa-regular fa-pen-to-square"></i>กิจกรรม</a>
+      <a href="#leave" class="nav-btn" data-view="leave"><i class="fa-regular fa-calendar-minus"></i>ลา/ราชการ</a>
+      <a href="#history" class="nav-btn" data-view="history"><i class="fa-solid fa-clock-rotate-left"></i>ประวัติ</a>
+    </div>
+  </nav>
+
+  <div class="toast-wrap" id="toasts" aria-live="polite"></div>
+
+  <script>
+    // ==========================================
+    // ⚙️ ตั้งค่า: ลิงก์ Web App ของ Apps Script (ลงท้ายด้วย /exec)
+    // ==========================================
+    const API_URL = 'https://script.google.com/macros/s/AKfycbzjAuYy6iJlDhSBL8N9Jir7STPMjTiil3PTGFh9-i4NKl0E3xsxGLLNVg2JP-okmescXw/exec';
+
+    // เรียก API ของ Apps Script (Content-Type text/plain → ไม่ต้องขออนุญาต CORS ล่วงหน้า)
+    function callApi(action, payload) {
+      return fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ action: action, payload: payload || {} }),
+        redirect: 'follow'
+      })
+        .then(res => {
+          if (!res.ok) throw new Error('เชื่อมต่อ server ไม่สำเร็จ (HTTP ' + res.status + ')');
+          return res.json();
+        })
+        .then(res => {
+          if (!res || !res.ok) throw new Error((res && res.error) || 'เกิดข้อผิดพลาดจาก server');
+          return res.data;
+        })
+        .catch(err => {
+          if (err instanceof SyntaxError) throw new Error('server ตอบกลับไม่ถูกต้อง กรุณาตรวจสอบการ deploy');
+          if (err instanceof TypeError) throw new Error('เชื่อมต่อ server ไม่ได้ ตรวจสอบอินเทอร์เน็ตแล้วลองใหม่');
+          throw err;
+        });
+    }
+
+    // ==========================================
+    // ตัวช่วยทั่วไป
+    // ==========================================
+    const $ = (sel, root = document) => root.querySelector(sel);
+    const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
+    const store = {
+      get(key, fallback) { try { const v = localStorage.getItem(key); return v == null ? fallback : JSON.parse(v); } catch (e) { return fallback; } },
+      set(key, value) { try { localStorage.setItem(key, JSON.stringify(value)); } catch (e) { /* โหมดส่วนตัว ใช้ต่อได้ */ } }
+    };
+    function esc(value) {
+      return String(value == null ? '' : value)
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    }
+    // วันที่วันนี้ตามเวลาประเทศไทย (yyyy-mm-dd)
+    function todayStr() { return new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Bangkok' }); }
+    function addDays(ds, n) { const d = new Date(ds + 'T00:00:00Z'); d.setUTCDate(d.getUTCDate() + n); return d.toISOString().slice(0, 10); }
+    const TH_MONTHS = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
+    const TH_DAYS = ['อาทิตย์', 'จันทร์', 'อังคาร', 'พุธ', 'พฤหัสบดี', 'ศุกร์', 'เสาร์'];
+    function thDate(ds, withYear = true) {
+      const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(ds || '');
+      if (!m) return ds || '-';
+      return `${Number(m[3])} ${TH_MONTHS[Number(m[2]) - 1]}${withYear ? ' ' + (Number(m[1]) + 543) : ''}`;
+    }
+    function thRange(a, b) {
+      if (!a) return '-';
+      if (!b || a === b) return thDate(a);
+      if (a.slice(0, 4) === b.slice(0, 4)) return `${thDate(a, false)} – ${thDate(b)}`;
+      return `${thDate(a)} – ${thDate(b)}`;
+    }
+    function relDay(ds) {
+      const t = todayStr();
+      if (ds === t) return 'วันนี้';
+      if (ds === addDays(t, -1)) return 'เมื่อวาน';
+      if (ds === addDays(t, 1)) return 'พรุ่งนี้';
+      return thDate(ds);
+    }
+    function splitPersons(str) { return String(str || '').split(',').map(s => s.trim()).filter(Boolean); }
+    function nowTime() { return new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Bangkok' }); }
+
+    // ข้อความแจ้งด้านล่าง
+    function toast(message, type = 'success', ms = 3200) {
+      const icon = { success: 'fa-circle-check', error: 'fa-circle-exclamation', info: 'fa-circle-info' }[type] || 'fa-circle-info';
+      const el = document.createElement('div');
+      el.className = 'toast ' + type;
+      el.setAttribute('role', type === 'error' ? 'alert' : 'status');
+      el.innerHTML = `<i class="fa-solid ${icon}"></i><div style="flex:1">${esc(message)}</div>`;
+      el.onclick = () => el.remove();
+      $('#toasts').appendChild(el);
+      setTimeout(() => el.remove(), type === 'error' ? Math.max(ms, 6000) : ms);
+    }
+    function errMsg(error) { return (error && error.message) ? error.message : String(error || 'ไม่ทราบสาเหตุ'); }
+
+    // ปุ่มระหว่างบันทึก
+    function setBusy(btn, busy, label) {
+      if (busy) {
+        btn.dataset.label = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> ${label || 'กำลังบันทึก…'}`;
+      } else {
+        btn.disabled = false;
+        if (btn.dataset.label) btn.innerHTML = btn.dataset.label;
+      }
+    }
+
+    // ==========================================
+    // แผ่นเลื่อนขึ้น (bottom sheet) + กล่องยืนยัน
+    // ==========================================
+    let activeSheet = null;
+    function openSheet({ title, body, foot, onClose }) {
+      closeSheet();
+      const backdrop = document.createElement('div');
+      backdrop.className = 'sheet-backdrop';
+      backdrop.innerHTML = `
+        <div class="sheet" role="dialog" aria-modal="true" aria-label="${esc(title)}">
+          <div class="sheet-head"><h2>${esc(title)}</h2><button type="button" class="icon-btn" data-close aria-label="ปิด"><i class="fa-solid fa-xmark"></i></button></div>
+          <div class="sheet-body"></div>
+          ${foot ? '<div class="sheet-foot"></div>' : ''}
+        </div>`;
+      const bodyEl = $('.sheet-body', backdrop);
+      if (typeof body === 'string') bodyEl.innerHTML = body; else if (body) bodyEl.appendChild(body);
+      if (foot) { const f = $('.sheet-foot', backdrop); if (typeof foot === 'string') f.innerHTML = foot; else f.appendChild(foot); }
+      backdrop.addEventListener('click', e => { if (e.target === backdrop || e.target.closest('[data-close]')) closeSheet(); });
+      document.body.appendChild(backdrop);
+      document.body.style.overflow = 'hidden';
+      activeSheet = { el: backdrop, onClose };
+      setTimeout(() => { const f = $('[data-autofocus]', backdrop) || $('[data-close]', backdrop); f && f.focus({ preventScroll: true }); }, 50);
+      return backdrop;
+    }
+    function closeSheet() {
+      if (!activeSheet) return;
+      const s = activeSheet;
+      activeSheet = null;
+      s.el.remove();
+      document.body.style.overflow = '';
+      if (s.onClose) s.onClose();
+    }
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeSheet(); });
+
+    function confirmSheet({ title, text, okText = 'ยืนยัน', danger = false }) {
+      return new Promise(resolve => {
+        let answered = false;
+        const sheet = openSheet({
+          title,
+          body: `<p style="font-size:15px">${esc(text)}</p>`,
+          foot: `<button type="button" class="btn btn-ghost" data-close>ยกเลิก</button>
+                 <button type="button" class="btn ${danger ? 'btn-danger' : 'btn-primary'}" data-ok>${esc(okText)}</button>`,
+          onClose: () => { if (!answered) resolve(false); }
+        });
+        $('[data-ok]', sheet).onclick = () => { answered = true; closeSheet(); resolve(true); };
+      });
+    }
+
+    // ==========================================
+    // สถานะของแอป
+    // ==========================================
+    const STAFF_CACHE_KEY = 'qd_staffList';
+    const state = {
+      staff: store.get(STAFF_CACHE_KEY, []),
+      me: store.get('qd_me', ''),
+      overview: null,
+      history: [],
+      historyLoadedAt: 0,
+      historyFilter: 'all'
+    };
+    let pickersReady = false; // ตัวเลือกรายชื่อทั้งสองหน้าสร้างเสร็จแล้ว
+    const activityOptions = () => [...state.staff, 'ผู้ที่สนใจ'];
+
+    const LEAVE_TYPES = [
+      { value: 'ไปราชการปกติ', icon: '🏢', label: 'ไปราชการ', gov: true },
+      { value: 'ไปราชการงานโควิด', icon: '🦠', label: 'งานโควิด', gov: true },
+      { value: 'ลาป่วย', icon: '🏥', label: 'ลาป่วย' },
+      { value: 'ลาพักผ่อน', icon: '🏖️', label: 'ลาพักผ่อน' },
+      { value: 'ลากิจ', icon: '📝', label: 'ลากิจ' },
+      { value: 'สาย', icon: '⏰', label: 'สาย' },
+      { value: 'WFH', icon: '🏡', label: 'WFH' },
+      { value: 'ลาคลอดบุตร', icon: '👶', label: 'ลาคลอด' }
+    ];
+    const leaveTypeOf = v => LEAVE_TYPES.find(t => t.value === v);
+
+    // ==========================================
+    // ตัวเลือกรายชื่อ (ค้นหา + ชิป)
+    // ==========================================
+    function createPicker(root, opts) {
+      let selected = [];
+      let term = '';
+      root.className = 'picker';
+      root.innerHTML = `
+        <div class="pk-sel" aria-live="polite"></div>
+        <div class="pk-tools">
+          <div class="search"><i class="fa-solid fa-magnifying-glass"></i><input type="search" class="input" placeholder="ค้นหาชื่อ" aria-label="ค้นหาชื่อ" autocomplete="off"></div>
+          <button type="button" class="chip-btn pk-me" hidden>+ ฉัน</button>
+          ${opts.single ? '' : '<button type="button" class="chip-btn pk-all">เลือกที่เห็น</button>'}
+          <button type="button" class="chip-btn pk-clear">ล้าง</button>
+        </div>
+        <div class="pk-opts" role="group" aria-label="รายชื่อ"></div>`;
+      const selEl = $('.pk-sel', root), optsEl = $('.pk-opts', root), input = $('input', root), meBtn = $('.pk-me', root);
+
+      const options = () => {
+        const base = opts.getOptions();
+        const extras = selected.filter(n => !base.includes(n));
+        return [...base.map(n => ({ n, extra: false })), ...extras.map(n => ({ n, extra: true }))];
+      };
+      const visible = () => { const t = term.trim().toLowerCase(); return options().filter(o => !t || o.n.toLowerCase().includes(t)); };
+
+      function render() {
+        selEl.innerHTML = selected.length
+          ? selected.map(n => `<button type="button" class="chip on" data-n="${esc(n)}" aria-label="เอา ${esc(n)} ออก">${esc(n)} <i class="fa-solid fa-xmark"></i></button>`).join('')
+          : `<span class="muted small">${esc(opts.placeholder || 'แตะชื่อด้านล่างเพื่อเลือก')}</span>`;
+        const list = visible();
+        if (!opts.getOptions().length) optsEl.innerHTML = '<span class="muted small"><i class="fa-solid fa-spinner fa-spin"></i> กำลังโหลดรายชื่อ…</span>';
+        else optsEl.innerHTML = list.length
+          ? list.map(o => { const on = selected.includes(o.n); return `<button type="button" class="chip${on ? ' on' : ''}${o.extra ? ' warn' : ''}" data-n="${esc(o.n)}" aria-pressed="${on}">${o.extra ? '⚠️ ' : ''}${esc(o.n)}${o.extra ? ' (ไม่อยู่ในรายชื่อ)' : ''}</button>`; }).join('')
+          : '<span class="muted small">ไม่พบชื่อที่ค้นหา</span>';
+        meBtn.hidden = !state.me || !opts.getOptions().includes(state.me) || selected.includes(state.me);
+        if (opts.onChange) opts.onChange(selected.slice());
+      }
+      function toggle(n) {
+        if (opts.single) selected = selected[0] === n ? [] : [n];
+        else selected = selected.includes(n) ? selected.filter(x => x !== n) : [...selected, n];
+        render();
+      }
+      const onChipClick = e => { const b = e.target.closest('[data-n]'); if (b) toggle(b.dataset.n); };
+      selEl.addEventListener('click', onChipClick);
+      optsEl.addEventListener('click', onChipClick);
+      input.addEventListener('input', () => { term = input.value; render(); });
+      meBtn.addEventListener('click', () => { if (state.me) { selected = opts.single ? [state.me] : [...new Set([...selected, state.me])]; render(); } });
+      const allBtn = $('.pk-all', root);
+      if (allBtn) allBtn.addEventListener('click', () => { selected = [...new Set([...selected, ...visible().map(o => o.n)])]; render(); });
+      $('.pk-clear', root).addEventListener('click', () => { selected = []; render(); });
+      render();
+      return {
+        get: () => selected.slice(),
+        set(arr) { selected = [...new Set(arr.filter(Boolean))]; render(); },
+        reset() { selected = []; term = ''; input.value = ''; render(); },
+        refresh: render
+      };
+    }
+
+    // ==========================================
+    // ชื่อของฉัน
+    // ==========================================
+    function renderMe() {
+      const me = state.me;
+      const firstName = me.replace(/^(ว่าที่\s*(ร้อยตรี|ร\.ต\.)\s*(หญิง)?|นางสาว|นาย|นาง|น\.ส\.|ดร\.)\s*/, '').split(/\s+/)[0];
+      $('#meName').textContent = me ? firstName : 'เลือกชื่อ';
+      $('#meBtn').title = me || 'เลือกชื่อของฉัน';
+      $('#meAvatar').innerHTML = me ? esc(firstName.charAt(0)) : '<i class="fa-solid fa-user" style="font-size:12px"></i>';
+      $('#helloText').textContent = me ? `สวัสดีครับ คุณ${firstName}` : 'สวัสดีครับ';
+      $('#setupCard').hidden = !!me || !state.staff.length;
+      if (pickersReady) { actPicker.refresh(); leavePicker.refresh(); }
+      renderMeStatus();
+    }
+    function openMeSheet() {
+      const wrap = document.createElement('div');
+      wrap.innerHTML = '<p class="small muted" style="margin-bottom:10px">ระบบจะเลือกชื่อนี้ให้อัตโนมัติในหน้าลา/ไปราชการ และใช้กรองรายการ "ของฉัน" ข้อมูลเก็บไว้ในเครื่องนี้เท่านั้น</p><div></div>';
+      const picker = createPicker(wrap.lastChild, { single: true, getOptions: () => state.staff, placeholder: 'ยังไม่ได้เลือก' });
+      picker.set(state.me ? [state.me] : []);
+      const foot = document.createElement('div');
+      foot.style.cssText = 'display:flex; gap:10px; width:100%';
+      foot.innerHTML = `<button type="button" class="btn btn-ghost" data-close>ยกเลิก</button><button type="button" class="btn btn-primary" data-save style="flex:1">บันทึกชื่อ</button>`;
+      openSheet({ title: 'ชื่อของฉัน', body: wrap, foot });
+      $('[data-save]', foot).onclick = () => {
+        const me = picker.get()[0] || '';
+        state.me = me;
+        store.set('qd_me', me);
+        closeSheet();
+        renderMe();
+        if (me && !leavePicker.get().length) leavePicker.set([me]);
+        toast(me ? `ตั้งชื่อของฉันเป็น ${me} แล้ว` : 'ล้างชื่อของฉันแล้ว');
+      };
+    }
+
+    // ==========================================
+    // โหมดสี: อัตโนมัติ → สว่าง → มืด
+    // ==========================================
+    function applyTheme() {
+      const mode = store.get('qd_theme', 'auto');
+      if (mode === 'auto') document.documentElement.removeAttribute('data-theme');
+      else document.documentElement.setAttribute('data-theme', mode);
+      const dark = mode === 'dark' || (mode === 'auto' && matchMedia('(prefers-color-scheme: dark)').matches);
+      $('meta[name="theme-color"]').setAttribute('content', dark ? '#1C211F' : '#FFFFFF');
+      const label = { auto: 'โหมดสี: อัตโนมัติตามเครื่อง', light: 'โหมดสี: สว่าง', dark: 'โหมดสี: มืด' }[mode];
+      $('#themeBtn').title = label;
+      $('#themeBtn').setAttribute('aria-label', label);
+      $('#themeBtn').innerHTML = `<i class="fa-solid ${{ auto: 'fa-circle-half-stroke', light: 'fa-sun', dark: 'fa-moon' }[mode]}"></i>`;
+    }
+    $('#themeBtn').addEventListener('click', () => {
+      const next = { auto: 'light', light: 'dark', dark: 'auto' }[store.get('qd_theme', 'auto')] || 'auto';
+      store.set('qd_theme', next);
+      applyTheme();
+      toast($('#themeBtn').title, 'info', 1600);
+    });
+    matchMedia('(prefers-color-scheme: dark)').addEventListener('change', applyTheme);
+
+    // ==========================================
+    // เปลี่ยนหน้า (ใช้ # ในลิงก์ → ปุ่มย้อนกลับของมือถือใช้ได้)
+    // ==========================================
+    const VIEWS = ['today', 'activity', 'leave', 'history'];
+    function showView() {
+      const name = VIEWS.includes(location.hash.slice(1)) ? location.hash.slice(1) : 'today';
+      closeSheet();
+      $$('.view').forEach(v => v.classList.toggle('active', v.id === 'view-' + name));
+      $$('.nav-btn').forEach(b => { const on = b.dataset.view === name; b.classList.toggle('active', on); on ? b.setAttribute('aria-current', 'page') : b.removeAttribute('aria-current'); });
+      window.scrollTo(0, 0);
+      if (name === 'history') showHistory();
+      if (name === 'today' && state.overview && Date.now() - (state.overview._at || 0) > 5 * 60 * 1000) loadOverview(true);
+    }
+    window.addEventListener('hashchange', showView);
+
+    // ==========================================
+    // รายชื่อเจ้าหน้าที่
+    // ==========================================
+    function loadStaff() {
+      callApi('getStaffList').then(list => {
+        if (!Array.isArray(list) || !list.length) return;
+        store.set(STAFF_CACHE_KEY, list);
+        if (JSON.stringify(list) !== JSON.stringify(state.staff)) {
+          state.staff = list;
+          if (state.me && !list.includes(state.me)) { state.me = ''; store.set('qd_me', ''); }
+          actPicker.refresh(); leavePicker.refresh(); renderMe();
+          if (state.overview) renderOverview(state.overview);
+        }
+      }).catch(err => {
+        if (!state.staff.length) toast('โหลดรายชื่อไม่สำเร็จ: ' + errMsg(err), 'error');
+      });
+    }
+
+    // ==========================================
+    // หน้า "วันนี้"
+    // ==========================================
+    let todayFilter = '';
+    function loadOverview(silent) {
+      const btn = $('#todayRefresh i');
+      btn.classList.add('fa-spin');
+      if (!silent) $('#todayStatus').textContent = 'กำลังโหลด…';
+      callApi('getTodayOverview').then(data => {
+        data._at = Date.now();
+        state.overview = data;
+        store.set('qd_overview', data);
+        renderOverview(data);
+        $('#todayStatus').textContent = 'อัปเดตล่าสุด ' + nowTime() + ' น.';
+      }).catch(err => {
+        const notReady = /ไม่รู้จักคำสั่ง/.test(errMsg(err));
+        $('#todayStatus').textContent = notReady ? '' : '⚠️ อัปเดตไม่สำเร็จ แตะปุ่ม ⟳ เพื่อลองใหม่';
+        if (!state.overview) {
+          const msg = notReady
+            ? 'หน้า "วันนี้" จะใช้ได้หลังอัปเดต server (Apps Script) เป็นเวอร์ชันใหม่'
+            : 'โหลดข้อมูลวันนี้ไม่สำเร็จ: ' + errMsg(err);
+          $('#eventList').innerHTML = `<div class="empty"><i class="fa-solid fa-plug-circle-exclamation"></i>${esc(msg)}</div>`;
+          $('#staffList').innerHTML = '<div class="empty">–</div>';
+        }
+      }).finally(() => btn.classList.remove('fa-spin'));
+    }
+
+    function renderOverview(data) {
+      if (data.date) {
+        const d = new Date(data.date + 'T00:00:00Z');
+        $('#appbarDate').textContent = `${TH_DAYS[d.getUTCDay()]} ${thDate(data.date)}`;
+      }
+      $('#statNormal').textContent = data.normalCount;
+      $('#statGov').textContent = data.govCount;
+      $('#statOther').textContent = data.otherCount;
+
+      // กิจกรรม
+      const events = data.events || [];
+      $('#eventCount').textContent = events.length ? events.length + ' รายการ' : '';
+      if (data.eventsError) {
+        $('#eventList').innerHTML = `<div class="empty"><i class="fa-solid fa-triangle-exclamation"></i>${esc(data.eventsError)}</div>`;
+      } else if (!events.length) {
+        $('#eventList').innerHTML = '<div class="empty"><i class="fa-regular fa-calendar-check"></i>วันนี้ยังไม่มีกิจกรรม<br><a href="#activity" class="chip-btn" style="display:inline-block;margin-top:8px">+ บันทึกกิจกรรม</a></div>';
+      } else {
+        $('#eventList').innerHTML = events.map(ev => {
+          const link = /^https:\/\//i.test(ev.meetingLink || '') ? ev.meetingLink : '';
+          const persons = (ev.persons || []).length ? `<div class="meta"><i class="fa-solid fa-users" style="font-size:11px"></i> ${esc(ev.persons.join(', '))}</div>` : '';
+          return `<div class="event">
+              <time>${esc(ev.startLabel)}</time>
+              <div class="body">
+                <div class="title">${esc(ev.title)}</div>
+                <div class="meta">${esc(ev.timeText)}</div>
+                ${persons}
+                ${ev.details ? `<div class="desc">${esc(ev.details)}</div>` : ''}
+                ${link ? `<a class="join" href="${esc(link)}" target="_blank" rel="noopener"><i class="fa-solid fa-video"></i> เข้าร่วมประชุม</a>` : ''}
+              </div>
+            </div>`;
+        }).join('');
+      }
+      renderStaffToday();
+      renderMeStatus();
+    }
+
+    // รายชื่อเจ้าหน้าที่วันนี้ แยกตามประเภท (กดตัวเลขด้านบนเพื่อกรอง)
+    function renderStaffToday() {
+      const data = state.overview;
+      if (!data) return;
+      const cats = data.categories || [];
+      const busy = new Set(cats.flatMap(c => c.staff));
+      const normal = state.staff.filter(n => !busy.has(n));
+      const groups = [];
+      if (!todayFilter || todayFilter === 'normal') groups.push({ icon: '✅', label: 'ปฏิบัติงานปกติ', staff: normal });
+      cats.forEach(c => {
+        const g = c.group === 'gov' ? 'gov' : 'leave';
+        if (!todayFilter || todayFilter === g) groups.push({ icon: c.icon, label: c.label, staff: c.staff });
+      });
+      $$('#stats .stat').forEach(s => s.setAttribute('aria-pressed', String(s.dataset.filter === todayFilter)));
+      $('#staffSectionTitle').textContent = todayFilter ? { normal: 'ปฏิบัติงานปกติ', gov: 'ไปราชการ', leave: 'ลา / อื่นๆ' }[todayFilter] : 'เจ้าหน้าที่วันนี้';
+      $('#staffTotal').textContent = todayFilter ? 'แสดงทั้งหมด ✕' : `ทั้งหมด ${data.total} คน`;
+      $('#staffTotal').style.cursor = todayFilter ? 'pointer' : '';
+      const shown = groups.filter(g => g.staff.length);
+      $('#staffList').innerHTML = shown.length ? shown.map(g => `
+        <div class="cat">
+          <div class="cat-head"><span>${esc(g.icon)}</span> ${esc(g.label)} <span class="n">${g.staff.length} คน</span></div>
+          <div class="name-chips">${g.staff.map(n => `<span class="name-chip${n === state.me ? ' me' : ''}">${esc(n)}</span>`).join('')}</div>
+        </div>`).join('') : '<div class="empty">ไม่มีเจ้าหน้าที่ในกลุ่มนี้</div>';
+    }
+    $('#stats').addEventListener('click', e => {
+      const b = e.target.closest('[data-filter]');
+      if (!b) return;
+      todayFilter = todayFilter === b.dataset.filter ? '' : b.dataset.filter;
+      renderStaffToday();
+    });
+    $('#staffTotal').addEventListener('click', () => { if (todayFilter) { todayFilter = ''; renderStaffToday(); } });
+    $('#todayRefresh').addEventListener('click', () => loadOverview(false));
+
+    function renderMeStatus() {
+      const el = $('#meStatus');
+      const data = state.overview;
+      if (!state.me || !data) { el.hidden = true; return; }
+      const mine = (data.categories || []).filter(c => c.staff.includes(state.me));
+      const myEvents = (data.events || []).filter(ev => (ev.persons || []).includes(state.me));
+      const status = mine.length ? mine.map(c => `${c.icon} ${c.label}`).join(', ') : '✅ ปฏิบัติงานปกติ';
+      el.innerHTML = `<div style="flex:1"><div class="small muted">สถานะของคุณวันนี้</div><strong style="font-weight:500">${esc(status)}</strong>${myEvents.length ? `<div class="small muted">มีกิจกรรม ${myEvents.length} รายการ</div>` : ''}</div>
+        ${mine.length ? '' : '<a href="#leave" class="chip-btn">แจ้งลา/ไปราชการ</a>'}`;
+      el.hidden = false;
+    }
+
+    // ==========================================
+    // หน้า "บันทึกกิจกรรม"
+    // ==========================================
+    const DEFAULT_TITLES = ['ประชุม', 'ประชุมออนไลน์', 'อบรม', 'ตรวจเยี่ยม'];
+    function topTitles() {
+      const counts = store.get('qd_titles', {});
+      const used = Object.keys(counts).sort((a, b) => counts[b] - counts[a]).slice(0, 6);
+      return [...new Set([...used, ...DEFAULT_TITLES])].slice(0, 6);
+    }
+    function rememberTitle(t) {
+      const counts = store.get('qd_titles', {});
+      counts[t] = (counts[t] || 0) + 1;
+      // เก็บแค่ 30 ชื่อที่ใช้บ่อยที่สุด
+      const keep = Object.keys(counts).sort((a, b) => counts[b] - counts[a]).slice(0, 30);
+      store.set('qd_titles', Object.fromEntries(keep.map(k => [k, counts[k]])));
+    }
+    function renderTitleSuggest() {
+      const cur = $('#actTitle').value.trim();
+      $('#titleSuggest').innerHTML = topTitles().map(t => `<button type="button" class="chip${t === cur ? ' on' : ''}" data-t="${esc(t)}">${esc(t)}</button>`).join('');
+    }
+    $('#titleSuggest').addEventListener('click', e => {
+      const b = e.target.closest('[data-t]');
+      if (!b) return;
+      $('#actTitle').value = b.dataset.t;
+      renderTitleSuggest(); updateActSummary();
+      $('#actDetails').focus();
+    });
+
+    const actPicker = createPicker($('#actPicker'), { getOptions: activityOptions, onChange: () => { if (pickersReady) updateActSummary(); } });
+
+    function setActDefaults() {
+      const t = todayStr();
+      $('#actDate').value = t; $('#actEndDate').value = t;
+      $('#actTime').value = '08:30'; $('#actEndTime').value = '16:30';
+    }
+    $('#actDaySeg').addEventListener('click', e => {
+      const b = e.target.closest('[data-day]');
+      if (!b) return;
+      const d = addDays(todayStr(), Number(b.dataset.day));
+      $('#actDate').value = d; $('#actEndDate').value = d;
+      updateActSummary();
+    });
+    $('#actTimeSeg').addEventListener('click', e => {
+      const b = e.target.closest('[data-time]');
+      if (!b) return;
+      const [a, z] = b.dataset.time.split('-');
+      $('#actTime').value = a; $('#actEndTime').value = z;
+      updateActSummary();
+    });
+    // วันที่เริ่มเลื่อน → วันที่สิ้นสุดเลื่อนตามถ้าอยู่ก่อนวันเริ่ม
+    $('#actDate').addEventListener('change', () => { if ($('#actEndDate').value < $('#actDate').value) $('#actEndDate').value = $('#actDate').value; });
+    ['actTitle', 'actDate', 'actTime', 'actEndDate', 'actEndTime'].forEach(id => $('#' + id).addEventListener('input', () => { updateActSummary(); if (id === 'actTitle') renderTitleSuggest(); }));
+
+    function updateActSummary() {
+      const people = actPicker.get();
+      const d = $('#actDate').value, ed = $('#actEndDate').value, t = $('#actTime').value, et = $('#actEndTime').value;
+      $('#actCount').textContent = people.length ? people.length + ' คน' : '';
+      const t0 = todayStr();
+      $$('#actDaySeg button').forEach(b => { const v = addDays(t0, Number(b.dataset.day)); b.classList.toggle('on', d === v && ed === v); });
+      $$('#actTimeSeg button').forEach(b => b.classList.toggle('on', b.dataset.time === `${t}-${et}`));
+      const title = $('#actTitle').value.trim();
+      const when = d ? `${d === ed ? relDay(d) : thRange(d, ed)} ${t || ''}–${et || ''}` : '';
+      $('#actSummary').innerHTML = `<strong>${esc(title || 'ยังไม่ได้ใส่ชื่อกิจกรรม')}</strong>${people.length} คน · ${esc(when)}`;
+    }
+
+    $('#activityForm').addEventListener('submit', e => {
+      e.preventDefault();
+      const data = {
+        name1: $('#actTitle').value.trim(),
+        name2: $('#actDetails').value.trim() || '-',
+        person: actPicker.get().join(', '),
+        date: $('#actDate').value, time: $('#actTime').value,
+        endDate: $('#actEndDate').value, endTime: $('#actEndTime').value
+      };
+      if (!data.name1) { toast('ใส่ชื่อกิจกรรมก่อน', 'error', 3000); $('#actTitle').focus(); return; }
+      if (!data.person) { toast('เลือกผู้รับผิดชอบอย่างน้อย 1 คน', 'error', 3000); $('#actPicker input').focus(); return; }
+      if (!data.date || !data.time || !data.endDate || !data.endTime) { toast('ใส่วันและเวลาให้ครบ', 'error', 3000); return; }
+      if (`${data.endDate}T${data.endTime}` <= `${data.date}T${data.time}`) { toast('วันเวลาสิ้นสุดต้องอยู่หลังวันเวลาเริ่มต้น', 'error', 3000); return; }
+
+      const btn = $('#actSubmit');
+      setBusy(btn, true);
+      callApi('saveActivityData', data).then(res => {
+        if (!res || !res.success) throw new Error((res && res.message) || 'บันทึกไม่สำเร็จ');
+        rememberTitle(data.name1);
+        toast(`บันทึก "${data.name1}" แล้ว`);
+        $('#activityForm').reset();
+        actPicker.reset();
+        setActDefaults();
+        renderTitleSuggest(); updateActSummary();
+        afterSave();
+      }).catch(err => toast(errMsg(err), 'error')).finally(() => setBusy(btn, false));
+    });
+
+    // ==========================================
+    // หน้า "ลา / ไปราชการ"
+    // ==========================================
+    let leaveType = '';
+    $('#leaveTypes').innerHTML = LEAVE_TYPES.map(t => `<button type="button" class="type-btn" role="radio" aria-checked="false" data-v="${esc(t.value)}"><span class="emo">${t.icon}</span>${esc(t.label)}</button>`).join('');
+    $('#leaveTypes').addEventListener('click', e => {
+      const b = e.target.closest('[data-v]');
+      if (!b) return;
+      leaveType = b.dataset.v;
+      updateLeaveSummary();
+    });
+
+    const leavePicker = createPicker($('#leavePicker'), { getOptions: () => state.staff, onChange: () => { if (pickersReady) updateLeaveSummary(); } });
+    pickersReady = true;
+
+    function setLeaveDefaults() {
+      const t = todayStr();
+      $('#leaveStart').value = t; $('#leaveEnd').value = t;
+    }
+    $('#leaveDaySeg').addEventListener('click', e => {
+      const b = e.target.closest('[data-day]');
+      if (!b) return;
+      const d = addDays(todayStr(), Number(b.dataset.day));
+      $('#leaveStart').value = d; $('#leaveEnd').value = d;
+      updateLeaveSummary();
+    });
+    $('#leaveStart').addEventListener('change', () => { if ($('#leaveEnd').value < $('#leaveStart').value) $('#leaveEnd').value = $('#leaveStart').value; });
+    ['leaveStart', 'leaveEnd'].forEach(id => $('#' + id).addEventListener('input', updateLeaveSummary));
+
+    function updateLeaveSummary() {
+      const people = leavePicker.get();
+      const a = $('#leaveStart').value, b = $('#leaveEnd').value;
+      $('#leaveCount').textContent = people.length ? people.length + ' คน' : '';
+      $$('#leaveTypes .type-btn').forEach(x => { const on = x.dataset.v === leaveType; x.classList.toggle('on', on); x.setAttribute('aria-checked', String(on)); });
+      const t0 = todayStr();
+      $$('#leaveDaySeg button').forEach(x => { const v = addDays(t0, Number(x.dataset.day)); x.classList.toggle('on', a === v && b === v); });
+      const type = leaveTypeOf(leaveType);
+      const days = a && b && b >= a ? Math.round((new Date(b) - new Date(a)) / 864e5) + 1 : 0;
+      const who = people.length === 1 ? people[0] : people.length + ' คน';
+      $('#leaveSummary').innerHTML = `<strong>${type ? esc(type.icon + ' ' + type.value) : 'ยังไม่ได้เลือกประเภท'}</strong>${esc(who)} · ${esc(a === b ? relDay(a) : thRange(a, b))}${days > 1 ? ` (${days} วัน)` : ''}`;
+    }
+
+    $('#leaveForm').addEventListener('submit', e => {
+      e.preventDefault();
+      const data = {
+        startDate: $('#leaveStart').value, endDate: $('#leaveEnd').value,
+        staffNames: leavePicker.get(), activity: leaveType, remarks: $('#leaveRemarks').value.trim()
+      };
+      if (!data.staffNames.length) { toast('เลือกเจ้าหน้าที่อย่างน้อย 1 คน', 'error', 3000); return; }
+      if (!data.activity) { toast('เลือกประเภทก่อน', 'error', 3000); return; }
+      if (!data.startDate || !data.endDate) { toast('เลือกวันที่ก่อน', 'error', 3000); return; }
+      if (data.endDate < data.startDate) { toast('วันที่สิ้นสุดต้องไม่ก่อนวันที่เริ่ม', 'error', 3000); return; }
+
+      const btn = $('#leaveSubmit');
+      setBusy(btn, true);
+      callApi('saveLeaveData', data).then(res => {
+        if (!res || !res.success) throw new Error((res && res.message) || 'บันทึกไม่สำเร็จ');
+        const details = res.details || [];
+        const hasDup = details.some(d => d.startsWith('⚠️'));
+        if (res.savedCount > 0 && !hasDup) toast(res.message);
+        else openSheet({
+          title: res.savedCount > 0 ? 'บันทึกแล้วบางส่วน' : 'ไม่มีรายการใหม่',
+          body: `<p style="margin-bottom:10px">${esc(res.message)}</p><div class="result-list">${details.map(d => `<div>${esc(d)}</div>`).join('')}</div>`,
+          foot: '<button type="button" class="btn btn-primary" data-close>ตกลง</button>'
+        });
+        leaveType = '';
+        $('#leaveRemarks').value = '';
+        leavePicker.set(state.me ? [state.me] : []);
+        setLeaveDefaults();
+        updateLeaveSummary();
+        if (res.savedCount > 0) afterSave();
+      }).catch(err => toast(errMsg(err), 'error')).finally(() => setBusy(btn, false));
+    });
+
+    // หลังบันทึก/แก้ไข/ลบ: อัปเดตหน้าวันนี้และประวัติแบบเบื้องหลัง
+    function afterSave() {
+      loadOverview(true);
+      if (state.historyLoadedAt) loadHistory(true);
+    }
+
+    // ==========================================
+    // หน้า "ประวัติ"
+    // ==========================================
+    const HISTORY_CACHE_MS = 3 * 60 * 1000;
+    let historyReq = 0;
+    function showHistory() {
+      if (state.historyLoadedAt && Date.now() - state.historyLoadedAt < HISTORY_CACHE_MS) return;
+      loadHistory(state.historyLoadedAt > 0);
+    }
+    function loadHistory(silent) {
+      const req = ++historyReq;
+      $('#historyRefresh i').classList.add('fa-spin');
+      if (!silent || !state.historyLoadedAt) $('#historyList').innerHTML = '<div class="rec-list">' + '<div class="rec"><div class="skeleton" style="height:38px;flex:1"></div></div>'.repeat(4) + '</div>';
+      $('#historyStatus').textContent = 'กำลังอัปเดต…';
+      callApi('getRecentActivities').then(list => {
+        if (req !== historyReq) return;
+        state.history = Array.isArray(list) ? list : [];
+        state.historyLoadedAt = Date.now();
+        $('#historyStatus').textContent = 'อัปเดตล่าสุด ' + nowTime() + ' น. · แตะรายการเพื่อแก้ไขหรือลบ';
+        renderHistory();
+      }).catch(err => {
+        if (req !== historyReq) return;
+        if (silent && state.historyLoadedAt) { $('#historyStatus').textContent = '⚠️ อัปเดตไม่สำเร็จ แตะ ⟳ เพื่อลองใหม่'; return; }
+        $('#historyStatus').textContent = '';
+        $('#historyList').innerHTML = `<div class="empty"><i class="fa-solid fa-circle-exclamation"></i>${esc(errMsg(err))}<br><button type="button" class="chip-btn" style="margin-top:8px" onclick="loadHistory(false)">ลองใหม่</button></div>`;
+      }).finally(() => { if (req === historyReq) $('#historyRefresh i').classList.remove('fa-spin'); });
+    }
+    $('#historyRefresh').addEventListener('click', () => loadHistory(true));
+    $('#historySearch').addEventListener('input', renderHistory);
+    $('#historyFilters').addEventListener('click', e => {
+      const b = e.target.closest('[data-f]');
+      if (!b) return;
+      if (b.dataset.f === 'mine' && !state.me) { openMeSheet(); return; }
+      state.historyFilter = b.dataset.f;
+      $$('#historyFilters .chip').forEach(c => c.classList.toggle('on', c === b));
+      renderHistory();
+    });
+
+    function recordedDay(ts) {
+      const d = new Date(ts);
+      return isNaN(d) ? '' : d.toLocaleDateString('sv-SE', { timeZone: 'Asia/Bangkok' });
+    }
+    function recMeta(act) {
+      const when = act.type === 'activity'
+        ? `${act.startDate === act.endDate ? thDate(act.startDate) : thRange(act.startDate, act.endDate)} · ${act.startTime || ''}–${act.endTime || ''} น.`
+        : thRange(act.startDate, act.endDate);
+      return when;
+    }
+    function renderHistory() {
+      const term = $('#historySearch').value.trim().toLowerCase();
+      const f = state.historyFilter;
+      const items = state.history.map((act, i) => ({ act, i })).filter(({ act }) => {
+        if (f === 'activity' && act.type !== 'activity') return false;
+        if (f === 'leave' && act.type !== 'leave') return false;
+        if (f === 'mine' && !splitPersons(act.person).includes(state.me)) return false;
+        if (!term) return true;
+        return [act.title, act.person, act.details].join(' ').toLowerCase().includes(term);
+      });
+      if (!items.length) {
+        $('#historyList').innerHTML = `<div class="empty"><i class="fa-regular fa-folder-open"></i>${state.history.length ? 'ไม่พบรายการที่ตรงกับการค้นหา' : 'ยังไม่มีรายการ'}</div>`;
+        return;
+      }
+      // จัดกลุ่มตามวันที่บันทึก
+      const groups = [];
+      items.forEach(it => {
+        const day = recordedDay(it.act.timestamp);
+        let g = groups[groups.length - 1];
+        if (!g || g.day !== day) { g = { day, items: [] }; groups.push(g); }
+        g.items.push(it);
+      });
+      $('#historyList').innerHTML = groups.map(g => `
+        <p class="group-label">${g.day ? 'บันทึก' + esc(relDay(g.day)) : 'อื่นๆ'}</p>
+        <div class="rec-list">${g.items.map(({ act, i }) => {
+          const lt = act.type === 'leave' ? leaveTypeOf(act.title) : null;
+          const cls = act.type === 'leave' ? (lt && lt.gov ? 'gov' : 'leave') : 'activity';
+          const title = act.type === 'leave' ? `${lt ? lt.icon + ' ' : ''}${act.title} · ${act.person}` : act.title;
+          const sub = act.type === 'leave' ? recMeta(act) : `${recMeta(act)} · ${splitPersons(act.person).length} คน`;
+          return `<button type="button" class="rec ${cls}" data-i="${i}">
+              <span class="bar"></span>
+              <span class="body"><span class="title" style="display:block">${esc(title || '-')}</span><span class="meta" style="display:block">${esc(sub)}</span></span>
+              <i class="fa-solid fa-chevron-right"></i>
+            </button>`;
+        }).join('')}</div>`).join('');
+    }
+    $('#historyList').addEventListener('click', e => {
+      const b = e.target.closest('[data-i]');
+      if (b) openRecord(Number(b.dataset.i));
+    });
+
+    // รายละเอียดรายการ
+    function openRecord(i) {
+      const act = state.history[i];
+      if (!act) return;
+      const isLeave = act.type === 'leave';
+      const lt = isLeave ? leaveTypeOf(act.title) : null;
+      const badge = isLeave ? `<span class="badge ${lt && lt.gov ? 'gov' : 'leave'}">${lt && lt.gov ? 'ไปราชการ' : 'ลา / อื่นๆ'}</span>` : '<span class="badge activity">กิจกรรม</span>';
+      const body = `
+        <div style="margin-bottom:6px">${badge}</div>
+        <div style="font-size:18px;font-weight:600;margin-bottom:6px">${esc((lt ? lt.icon + ' ' : '') + (act.title || '-'))}</div>
+        <div class="detail-row"><i class="fa-regular fa-calendar"></i><div>${esc(recMeta(act))}</div></div>
+        <div class="detail-row"><i class="fa-solid fa-users"></i><div>${esc(splitPersons(act.person).join(', ') || '-')}</div></div>
+        ${act.details && act.details !== '-' ? `<div class="detail-row"><i class="fa-regular fa-note-sticky"></i><div>${esc(act.details)}</div></div>` : ''}`;
+      const sheet = openSheet({
+        title: 'รายละเอียด',
+        body,
+        foot: `<button type="button" class="btn btn-danger" data-del><i class="fa-regular fa-trash-can"></i> ลบ</button>
+               <button type="button" class="btn btn-primary" data-edit><i class="fa-regular fa-pen-to-square"></i> แก้ไข</button>`
+      });
+      $('[data-edit]', sheet).onclick = () => openEdit(act);
+      $('[data-del]', sheet).onclick = () => deleteRecord(act);
+    }
+
+    // แก้ไขรายการ
+    function openEdit(act) {
+      const isLeave = act.type === 'leave';
+      const wrap = document.createElement('div');
+      let picker;
+      let type = act.title;
+      if (isLeave) {
+        wrap.innerHTML = `
+          <div class="field"><span class="label">เจ้าหน้าที่ (ผู้ลา)</span><div data-picker></div></div>
+          <div class="field"><span class="label">ประเภท</span><div class="type-grid" data-types></div></div>
+          <div class="grid-2" style="margin-bottom:14px">
+            <div class="field"><label for="eDate">ตั้งแต่</label><input type="date" class="input" id="eDate" value="${esc(act.startDate)}"></div>
+            <div class="field"><label for="eEndDate">ถึง</label><input type="date" class="input" id="eEndDate" value="${esc(act.endDate)}"></div>
+          </div>
+          <div class="field"><label for="eDetails">หมายเหตุ</label><textarea class="input" id="eDetails" rows="2">${esc(act.details === '-' ? '' : act.details)}</textarea></div>
+          <p class="error-text" data-err hidden></p>`;
+        picker = createPicker($('[data-picker]', wrap), { single: true, getOptions: () => state.staff });
+        picker.set([act.person]);
+        const typesEl = $('[data-types]', wrap);
+        const types = leaveTypeOf(act.title) ? LEAVE_TYPES : [...LEAVE_TYPES, { value: act.title, icon: '📋', label: act.title }];
+        const renderTypes = () => {
+          typesEl.innerHTML = types.map(t => `<button type="button" class="type-btn${t.value === type ? ' on' : ''}" data-v="${esc(t.value)}" role="radio" aria-checked="${t.value === type}"><span class="emo">${t.icon}</span>${esc(t.label)}</button>`).join('');
+        };
+        renderTypes();
+        typesEl.addEventListener('click', e => { const b = e.target.closest('[data-v]'); if (b) { type = b.dataset.v; renderTypes(); } });
+      } else {
+        wrap.innerHTML = `
+          <div class="field"><label for="eTitle">ชื่อกิจกรรม</label><input class="input" id="eTitle" value="${esc(act.title)}"></div>
+          <div class="field"><label for="eDetails">รายละเอียด</label><textarea class="input" id="eDetails" rows="2">${esc(act.details === '-' ? '' : act.details)}</textarea></div>
+          <div class="field"><span class="label">ผู้รับผิดชอบ / ผู้เกี่ยวข้อง</span><div data-picker></div></div>
+          <div class="grid-2" style="margin-bottom:10px">
+            <div class="field"><label for="eDate">วันที่เริ่ม</label><input type="date" class="input" id="eDate" value="${esc(act.startDate)}"></div>
+            <div class="field"><label for="eTime">เวลาเริ่ม</label><input type="time" class="input" id="eTime" value="${esc(act.startTime)}"></div>
+          </div>
+          <div class="grid-2">
+            <div class="field"><label for="eEndDate">วันที่สิ้นสุด</label><input type="date" class="input" id="eEndDate" value="${esc(act.endDate)}"></div>
+            <div class="field"><label for="eEndTime">เวลาสิ้นสุด</label><input type="time" class="input" id="eEndTime" value="${esc(act.endTime)}"></div>
+          </div>
+          <p class="error-text" data-err hidden></p>`;
+        picker = createPicker($('[data-picker]', wrap), { getOptions: activityOptions });
+        picker.set(splitPersons(act.person));
+      }
+      const foot = document.createElement('div');
+      foot.style.cssText = 'display:flex; gap:10px; width:100%';
+      foot.innerHTML = '<button type="button" class="btn btn-ghost" data-close>ยกเลิก</button><button type="button" class="btn btn-primary" data-save style="flex:1"><i class="fa-solid fa-check"></i> บันทึกการแก้ไข</button>';
+      openSheet({ title: isLeave ? 'แก้ไขการลา / ไปราชการ' : 'แก้ไขกิจกรรม', body: wrap, foot });
+
+      const showErr = msg => { const el = $('[data-err]', wrap); el.textContent = msg; el.hidden = false; el.scrollIntoView({ block: 'nearest' }); };
+      $('[data-save]', foot).onclick = () => {
+        const value = {
+          type: act.type, rowNum: act.rowNum, eventId: act.eventId,
+          timestamp: act.timestamp, originalTitle: act.title, originalPerson: act.person, // ใช้ยืนยันว่าแก้ถูกแถว
+          name1: isLeave ? type : $('#eTitle', wrap).value.trim(),
+          name2: $('#eDetails', wrap).value.trim() || (isLeave ? '' : '-'),
+          person: picker.get().join(', '),
+          date: $('#eDate', wrap).value,
+          time: isLeave ? '' : $('#eTime', wrap).value,
+          endDate: $('#eEndDate', wrap).value,
+          endTime: isLeave ? '' : $('#eEndTime', wrap).value
+        };
+        if (!value.name1 || !value.person || !value.date || !value.endDate || (!isLeave && (!value.time || !value.endTime))) return showErr('กรอกข้อมูลให้ครบก่อนบันทึก');
+        if (isLeave ? value.endDate < value.date : `${value.endDate}T${value.endTime}` <= `${value.date}T${value.time}`) {
+          return showErr(isLeave ? 'วันที่สิ้นสุดต้องไม่ก่อนวันที่เริ่ม' : 'วันเวลาสิ้นสุดต้องอยู่หลังวันเวลาเริ่มต้น');
+        }
+        const btn = $('[data-save]', foot);
+        setBusy(btn, true);
+        callApi('updateActivityRecord', value).then(res => {
+          if (!res || !res.success) throw new Error((res && res.message) || 'แก้ไขไม่สำเร็จ');
+          closeSheet();
+          toast('แก้ไขข้อมูลแล้ว');
+          afterSave();
+        }).catch(err => {
+          setBusy(btn, false);
+          showErr(errMsg(err));
+          loadHistory(true);
+        });
+      };
+    }
+
+    async function deleteRecord(act) {
+      const label = act.type === 'leave' ? `${act.title} · ${act.person}` : act.title;
+      const ok = await confirmSheet({ title: 'ลบรายการนี้?', text: `"${label}" จะถูกลบออกจากระบบและปฏิทิน กู้คืนไม่ได้`, okText: 'ลบรายการ', danger: true });
+      if (!ok) return;
+      toast('กำลังลบ…', 'info', 1500);
+      callApi('deleteActivityRecord', act).then(res => {
+        if (!res || !res.success) throw new Error((res && res.message) || 'ลบไม่สำเร็จ');
+        toast('ลบรายการแล้ว');
+        state.history = state.history.filter(x => x !== act);
+        renderHistory();
+        afterSave();
+      }).catch(err => { toast(errMsg(err), 'error'); loadHistory(true); });
+    }
+
+    // ==========================================
+    // เริ่มทำงาน
+    // ==========================================
+    $('#meBtn').addEventListener('click', openMeSheet);
+    document.addEventListener('click', e => { if (e.target.closest('[data-action="pick-me"]')) openMeSheet(); });
+    window.addEventListener('offline', () => toast('ไม่มีการเชื่อมต่ออินเทอร์เน็ต', 'error'));
+    window.addEventListener('online', () => toast('เชื่อมต่ออินเทอร์เน็ตแล้ว', 'info', 2000));
+
+    applyTheme();
+    setActDefaults();
+    setLeaveDefaults();
+    if (state.me) leavePicker.set([state.me]);
+    renderTitleSuggest();
+    updateActSummary();
+    updateLeaveSummary();
+    const year = Number(todayStr().slice(0, 4));
+    if (year > 2025) $('#footerYear').textContent = '–' + year;
+
+    // แสดงข้อมูลวันนี้ที่เก็บไว้ทันที (ถ้าเป็นของวันนี้) แล้วอัปเดตจาก server
+    const cachedOverview = store.get('qd_overview', null);
+    if (cachedOverview && cachedOverview.date === todayStr()) {
+      state.overview = cachedOverview;
+      renderOverview(cachedOverview);
+      $('#todayStatus').textContent = 'กำลังอัปเดต…';
+    }
+    renderMe();
+    showView();
+    loadStaff();
+    loadOverview(!!state.overview);
+
+    // โหลดประวัติล่วงหน้าตอนว่าง → เปิดหน้าประวัติได้ทันที
+    window.addEventListener('load', () => {
+      const prefetch = () => { if (!state.historyLoadedAt) loadHistory(true); };
+      if ('requestIdleCallback' in window) requestIdleCallback(prefetch, { timeout: 4000 }); else setTimeout(prefetch, 2500);
+    });
+
+    // ติดตั้งเป็นแอป (PWA): เปิดได้เร็วขึ้น และใช้งานแบบเต็มจอ
+    if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
+      window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
+    }
+  </script>
+</body>
+</html>
