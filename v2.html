@@ -316,6 +316,62 @@
       .me-btn .me-name { display: none; }
       .me-btn { padding-right: 4px; }
     }
+
+    /* ===================== จอคอมพิวเตอร์ / โน้ตบุ๊ก (กว้าง 1024px ขึ้นไป) ===================== */
+    .nav-brand, .rec .extra { display: none; }
+    @media (min-width: 1024px) {
+      :root { --side-w: 232px; }
+      body { padding-bottom: 0; padding-left: var(--side-w); }
+      .appbar { padding-left: 32px; padding-right: 32px; }
+      .appbar-inner, main { max-width: 1160px; }
+      .appbar img { display: none; }
+      main { padding: 24px 32px 40px; }
+      .view-head h1, .hello strong { font-size: 24px; }
+
+      /* เมนูย้ายไปด้านซ้าย */
+      .bottom-nav { top: 0; right: auto; width: var(--side-w); border-top: 0; border-right: 1px solid var(--border); padding: 0; }
+      .bottom-nav .inner { height: 100%; max-width: none; display: flex; flex-direction: column; gap: 4px; padding: 16px 12px; }
+      .nav-brand { display: flex; align-items: center; gap: 10px; padding: 4px 8px 18px; margin-bottom: 8px; border-bottom: 1px solid var(--border); }
+      .nav-brand img { width: 40px; height: 40px; border-radius: 50%; background: #fff; }
+      .nav-brand strong { display: block; font-size: 15px; font-weight: 600; line-height: 1.2; }
+      .nav-brand span { font-size: 12px; color: var(--muted); }
+      .nav-btn { flex-direction: row; justify-content: flex-start; gap: 12px; height: 46px; padding: 0 14px; border-radius: 10px; font-size: 15px; }
+      .nav-btn i { font-size: 17px; width: 20px; text-align: center; }
+      .nav-btn:hover { background: var(--surface-2); }
+      .nav-btn.active { background: var(--primary-soft); color: var(--primary-text); }
+      .nav-btn.active::before { display: none; }
+
+      /* หน้า "วันนี้": ซ้าย = กิจกรรม, ขวา = สรุปเจ้าหน้าที่ */
+      .today-grid {
+        display: grid; grid-template-columns: minmax(0, 1.65fr) minmax(300px, 1fr); column-gap: 24px; align-items: start;
+        grid-template-areas: "quick setup" "events me" "events stats" "events staff";
+        grid-template-rows: auto auto auto 1fr;
+      }
+      .today-grid > .quick { grid-area: quick; }
+      .today-grid > .setup-card { grid-area: setup; }
+      .today-grid > .me-status { grid-area: me; }
+      .today-grid > .stats { grid-area: stats; margin-top: 0; }
+      .today-grid > .sec-events { grid-area: events; margin-top: 0; }
+      .today-grid > .sec-staff { grid-area: staff; margin-top: 0; position: sticky; top: 84px; }
+      .sec-staff .card { max-height: calc(100vh - 360px); min-height: 160px; overflow-y: auto; }
+      .stat b { font-size: 24px; }
+
+      /* หน้าบันทึก: แบ่งซ้ายขวา */
+      .form-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+      .form-grid > .card { margin-top: 0 !important; }
+      .act-grid { grid-template-areas: "info people" "date people"; }
+      .leave-grid { grid-template-areas: "people info" "people date"; }
+      .fg-info { grid-area: info; } .fg-people { grid-area: people; } .fg-date { grid-area: date; }
+      .form-grid .picker .pk-opts { max-height: none; }
+      .submit-bar { bottom: 16px; margin-top: 16px; }
+      .submit-bar .btn { min-width: 160px; }
+
+      /* ประวัติ: แสดงรายชื่อ/หมายเหตุเพิ่ม */
+      .rec { padding: 12px 18px; }
+      .rec .extra { display: block; font-size: 12.5px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 2px; }
+      .filters { margin-left: 0; margin-right: 0; padding: 0; }
+      .toast-wrap { bottom: 24px; padding-left: var(--side-w); }
+    }
     @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
   </style>
 </head>
@@ -344,6 +400,7 @@
         <button type="button" class="icon-btn" id="todayRefresh" aria-label="โหลดข้อมูลวันนี้ใหม่"><i class="fa-solid fa-rotate-right"></i></button>
       </div>
 
+      <div class="today-grid">
       <div class="setup-card" id="setupCard" hidden>
         <i class="fa-solid fa-user-check" style="font-size:20px"></i>
         <div style="flex:1">เลือกชื่อของคุณไว้ ระบบจะเลือกให้อัตโนมัติทุกครั้งที่บันทึก</div>
@@ -363,14 +420,15 @@
         <a href="#leave" class="btn btn-ghost"><i class="fa-regular fa-calendar-minus"></i> ลา / ไปราชการ</a>
       </div>
 
-      <div class="section">
+      <div class="section sec-events">
         <p class="section-label"><i class="fa-regular fa-calendar"></i> กิจกรรมวันนี้ <span class="count" id="eventCount"></span></p>
         <div class="card" id="eventList"><div class="skeleton" style="height:56px"></div></div>
       </div>
 
-      <div class="section">
+      <div class="section sec-staff">
         <p class="section-label"><i class="fa-solid fa-users"></i> <span id="staffSectionTitle">เจ้าหน้าที่วันนี้</span> <span class="count" id="staffTotal"></span></p>
         <div class="card" id="staffList"><div class="skeleton" style="height:40px"></div></div>
+      </div>
       </div>
       <p class="status-line" id="todayStatus" style="text-align:center; margin-top:10px;"></p>
 
@@ -381,7 +439,8 @@
     <section class="view" id="view-activity" aria-labelledby="activityTitle">
       <div class="view-head"><h1 id="activityTitle">บันทึกกิจกรรม</h1></div>
       <form id="activityForm" novalidate>
-        <div class="card">
+        <div class="form-grid act-grid">
+        <div class="card fg-info">
           <div class="field">
             <label for="actTitle">ชื่อกิจกรรม</label>
             <input class="input" id="actTitle" autocomplete="off" placeholder="ประชุมคณะทำงาน" maxlength="200">
@@ -393,12 +452,12 @@
           </div>
         </div>
 
-        <div class="card">
+        <div class="card fg-people">
           <p class="section-label"><i class="fa-solid fa-users"></i> ผู้รับผิดชอบ / ผู้เกี่ยวข้อง <span class="count" id="actCount"></span></p>
           <div id="actPicker"></div>
         </div>
 
-        <div class="card">
+        <div class="card fg-date">
           <p class="section-label"><i class="fa-regular fa-clock"></i> วันและเวลา</p>
           <div class="seg" id="actDaySeg">
             <button type="button" data-day="0">วันนี้</button>
@@ -418,6 +477,7 @@
             <div class="field"><label for="actEndTime">เวลาสิ้นสุด</label><input type="time" class="input" id="actEndTime"></div>
           </div>
         </div>
+        </div>
 
         <div class="submit-bar">
           <div class="summary" id="actSummary"><strong>ยังไม่ได้กรอกข้อมูล</strong></div>
@@ -430,17 +490,18 @@
     <section class="view" id="view-leave" aria-labelledby="leaveTitle">
       <div class="view-head"><h1 id="leaveTitle">บันทึกการลา / ไปราชการ</h1></div>
       <form id="leaveForm" novalidate>
-        <div class="card">
+        <div class="form-grid leave-grid">
+        <div class="card fg-people">
           <p class="section-label"><i class="fa-solid fa-user-check"></i> เจ้าหน้าที่ <span class="count" id="leaveCount"></span></p>
           <div id="leavePicker"></div>
         </div>
 
-        <div class="card">
+        <div class="card fg-info">
           <p class="section-label"><i class="fa-solid fa-list"></i> ประเภท</p>
           <div class="type-grid" id="leaveTypes" role="radiogroup" aria-label="ประเภทการลา"></div>
         </div>
 
-        <div class="card">
+        <div class="card fg-date">
           <p class="section-label"><i class="fa-regular fa-calendar"></i> วันที่</p>
           <div class="seg" id="leaveDaySeg">
             <button type="button" data-day="0">วันนี้</button>
@@ -454,6 +515,7 @@
             <label for="leaveRemarks">หมายเหตุ (ถ้ามี)</label>
             <textarea class="input" id="leaveRemarks" rows="2" placeholder="สถานที่ไปราชการ หรือเหตุผล"></textarea>
           </div>
+        </div>
         </div>
 
         <div class="submit-bar">
@@ -484,6 +546,10 @@
   <!-- ==================== เมนูด้านล่าง ==================== -->
   <nav class="bottom-nav" aria-label="เมนูหลัก">
     <div class="inner">
+      <div class="nav-brand">
+        <img src="https://lh3.googleusercontent.com/d/1G8Tczg6khRru0l84RSKE0qnj7clQfaQL=s96-rw" alt="" width="40" height="40" decoding="async">
+        <div><strong>กลุ่มด่านฯ</strong><span>สคร.12 สงขลา</span></div>
+      </div>
       <a href="#today" class="nav-btn" data-view="today"><i class="fa-solid fa-house"></i>วันนี้</a>
       <a href="#activity" class="nav-btn" data-view="activity"><i class="fa-regular fa-pen-to-square"></i>กิจกรรม</a>
       <a href="#leave" class="nav-btn" data-view="leave"><i class="fa-regular fa-calendar-minus"></i>ลา/ราชการ</a>
@@ -1167,9 +1233,12 @@
           const cls = act.type === 'leave' ? (lt && lt.gov ? 'gov' : 'leave') : 'activity';
           const title = act.type === 'leave' ? `${lt ? lt.icon + ' ' : ''}${act.title} · ${act.person}` : act.title;
           const sub = act.type === 'leave' ? recMeta(act) : `${recMeta(act)} · ${splitPersons(act.person).length} คน`;
+          // บรรทัดเพิ่มเติม (แสดงเฉพาะจอคอมพิวเตอร์): รายชื่อผู้เกี่ยวข้อง / หมายเหตุ
+          const note = act.details && act.details !== '-' && act.details !== 'ไม่มีหมายเหตุ' ? act.details : '';
+          const extra = act.type === 'leave' ? note : [splitPersons(act.person).join(', '), note].filter(Boolean).join(' · ');
           return `<button type="button" class="rec ${cls}" data-i="${i}">
               <span class="bar"></span>
-              <span class="body"><span class="title" style="display:block">${esc(title || '-')}</span><span class="meta" style="display:block">${esc(sub)}</span></span>
+              <span class="body"><span class="title" style="display:block">${esc(title || '-')}</span><span class="meta" style="display:block">${esc(sub)}</span>${extra ? `<span class="extra">${esc(extra)}</span>` : ''}</span>
               <i class="fa-solid fa-chevron-right"></i>
             </button>`;
         }).join('')}</div>`).join('');
