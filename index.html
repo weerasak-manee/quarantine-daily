@@ -537,6 +537,7 @@
     <section class="view" id="view-history" aria-labelledby="historyTitle">
       <div class="view-head">
         <h1 id="historyTitle">ประวัติการบันทึก</h1>
+        <button type="button" class="btn btn-ghost" id="exportBtn" style="min-height:38px; padding:0 14px; font-size:14px;"><i class="fa-regular fa-file-excel" style="color:#1D6F42"></i> Excel</button>
         <button type="button" class="icon-btn" id="historyRefresh" aria-label="โหลดรายการใหม่"><i class="fa-solid fa-rotate-right"></i></button>
       </div>
       <div class="search"><i class="fa-solid fa-magnifying-glass"></i><input type="search" class="input" id="historySearch" placeholder="ค้นหาชื่อกิจกรรมหรือชื่อคน" aria-label="ค้นหารายการ"></div>
@@ -1555,6 +1556,167 @@
         renderHistory();
         afterSave();
       }).catch(err => { toast(errMsg(err), 'error'); loadHistory(true); });
+    }
+
+    // ==========================================
+    // ดาวน์โหลด Excel (กิจกรรม + การลา ของเจ้าหน้าที่ 1 คน หรือทุกคน)
+    // โหลดไลบรารีสร้างไฟล์ Excel เฉพาะตอนกดดาวน์โหลด → ไม่ทำให้หน้าเว็บช้าลง
+    // ==========================================
+    let xlsxLoading = null;
+    function loadXlsx() {
+      if (window.XLSX) return Promise.resolve(window.XLSX);
+      if (!xlsxLoading) xlsxLoading = new Promise((ok, no) => {
+        const sc = document.createElement('script');
+        sc.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+        sc.onload = () => ok(window.XLSX);
+        sc.onerror = () => { xlsxLoading = null; no(new Error('โหลดตัวสร้างไฟล์ Excel ไม่สำเร็จ ตรวจสอบอินเทอร์เน็ตแล้วลองใหม่')); };
+        document.head.appendChild(sc);
+      });
+      return xlsxLoading;
+    }
+    // 2026-11-20 → 20/11/2569
+    function beDate(ds) {
+      const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(ds || '');
+      return m ? `${Number(m[3])}/${Number(m[2])}/${Number(m[1]) + 543}` : (ds || '');
+    }
+    function monthRange(offset) {
+      const [y, m] = todayStr().split('-').map(Number);
+      const d = new Date(Date.UTC(y, m - 1 + offset, 1));
+      const first = d.toISOString().slice(0, 10);
+      const last = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, 0)).toISOString().slice(0, 10);
+      return [first, offset === 0 ? todayStr() : last];
+    }
+    function fiscalRange() { // ปีงบประมาณ: 1 ต.ค. – 30 ก.ย.
+      const [y, m] = todayStr().split('-').map(Number);
+      const startYear = m >= 10 ? y : y - 1;
+      return [`${startYear}-10-01`, todayStr()];
+    }
+
+    function openExportSheet() {
+      const wrap = document.createElement('div');
+      const inLine = /Line\//i.test(navigator.userAgent);
+      wrap.innerHTML = `
+        <div class="field"><label for="xPerson">เจ้าหน้าที่</label>
+          <select class="input" id="xPerson">
+            <option value="ทุกคน">👥 ทุกคน (มีสรุปรายบุคคล)</option>
+            ${state.staff.map(n => `<option value="${esc(n)}"${n === state.me ? ' selected' : ''}>${esc(n)}</option>`).join('')}
+          </select></div>
+        <div class="field"><span class="label">ช่วงเวลา</span>
+          <div class="seg" id="xRange" style="margin-bottom:10px">
+            <button type="button" data-r="this">เดือนนี้</button>
+            <button type="button" data-r="last">เดือนที่แล้ว</button>
+            <button type="button" data-r="fy">ปีงบประมาณนี้</button>
+          </div>
+          <div class="grid-2">
+            <div class="field"><label for="xStart">ตั้งแต่</label><input type="date" class="input" id="xStart"></div>
+            <div class="field"><label for="xEnd">ถึง</label><input type="date" class="input" id="xEnd"></div>
+          </div></div>
+        <p class="small muted">ไฟล์ Excel มีแผ่นงาน: สรุป · กิจกรรม · ลา-ไปราชการ (นับวันทำการ จันทร์–ศุกร์)</p>
+        ${inLine ? '<div class="conflict" style="margin-top:10px">ถ้าดาวน์โหลดในแอป LINE ไม่ได้ ให้กด ⋯ มุมขวาบน > เปิดในเบราว์เซอร์</div>' : ''}
+        <p class="error-text" data-err hidden></p>`;
+      const foot = document.createElement('div');
+      foot.style.cssText = 'display:flex; gap:10px; width:100%';
+      foot.innerHTML = '<button type="button" class="btn btn-ghost" data-close>ยกเลิก</button><button type="button" class="btn btn-primary" data-go style="flex:1"><i class="fa-solid fa-download"></i> ดาวน์โหลด Excel</button>';
+      openSheet({ title: 'ดาวน์โหลดข้อมูลเป็น Excel', body: wrap, foot });
+
+      const ranges = { this: () => monthRange(0), last: () => monthRange(-1), fy: fiscalRange };
+      const markRange = () => $$('#xRange button', wrap).forEach(b => {
+        const [a, z] = ranges[b.dataset.r]();
+        b.classList.toggle('on', $('#xStart', wrap).value === a && $('#xEnd', wrap).value === z);
+      });
+      const setRange = ([a, b]) => { $('#xStart', wrap).value = a; $('#xEnd', wrap).value = b; markRange(); };
+      $('#xRange', wrap).addEventListener('click', e => { const b = e.target.closest('[data-r]'); if (b) setRange(ranges[b.dataset.r]()); });
+      ['xStart', 'xEnd'].forEach(id => $('#' + id, wrap).addEventListener('input', markRange));
+      setRange(monthRange(0));
+
+      $('[data-go]', foot).onclick = () => {
+        const person = $('#xPerson', wrap).value, start = $('#xStart', wrap).value, end = $('#xEnd', wrap).value;
+        const err = $('[data-err]', wrap);
+        const fail = msg => { err.textContent = msg; err.hidden = false; };
+        if (!start || !end) return fail('เลือกช่วงวันที่ก่อน');
+        if (end < start) return fail('วันที่สิ้นสุดต้องไม่ก่อนวันที่เริ่ม');
+        err.hidden = true;
+        const btn = $('[data-go]', foot);
+        setBusy(btn, true, 'กำลังสร้างไฟล์…');
+        Promise.all([loadXlsx(), callApi('getPersonRecords', { person, startDate: start, endDate: end })])
+          .then(([XLSX, data]) => {
+            const file = buildExcel(XLSX, data);
+            closeSheet();
+            toast(`ดาวน์โหลด ${file} แล้ว (กิจกรรม ${data.activities.length} · ลา/ไปราชการ ${data.leaves.length} รายการ)`, 'success', 5000);
+          })
+          .catch(e => { setBusy(btn, false); fail(errMsg(e)); });
+      };
+    }
+    $('#exportBtn').addEventListener('click', openExportSheet);
+
+    // สร้างไฟล์ .xlsx (คืนชื่อไฟล์)
+    function buildExcel(XLSX, data) {
+      const all = data.person === 'ทุกคน';
+      const period = `${beDate(data.startDate)} – ${beDate(data.endDate)}`;
+      const wb = XLSX.utils.book_new();
+      const addSheet = (name, rows, widths) => {
+        const ws = XLSX.utils.aoa_to_sheet(rows);
+        ws['!cols'] = widths.map(w => ({ wch: w }));
+        XLSX.utils.book_append_sheet(wb, ws, name);
+      };
+      const sumDays = list => list.reduce((s, l) => s + l.days, 0);
+      const govDays = sumDays(data.leaves.filter(l => l.gov));
+      const leaveDays = sumDays(data.leaves.filter(l => !l.gov));
+
+      // แผ่นงาน: สรุป
+      const groupCount = g => data.activities.filter(a => a.group === g).length;
+      const types = [...new Set(data.leaves.map(l => l.type))];
+      addSheet('สรุป', [
+        ['รายงานกิจกรรมและการลา กลุ่มด่านควบคุมโรคติดต่อระหว่างประเทศ สคร.12'],
+        ['เจ้าหน้าที่', data.person],
+        ['ช่วงเวลา', period],
+        ['ดาวน์โหลดเมื่อ', `${beDate(todayStr())} ${nowTime()} น.`],
+        [],
+        ['กิจกรรม', 'จำนวน (ครั้ง)'],
+        ...data.groups.map(g => [g, groupCount(g)]),
+        ['รวมกิจกรรม', data.activities.length],
+        [],
+        ['การลา / ไปราชการ', 'วันทำการ', 'จำนวนครั้ง'],
+        ...types.map(t => { const ls = data.leaves.filter(l => l.type === t); return [t, sumDays(ls), ls.length]; }),
+        ['รวมไปราชการ', govDays],
+        ['รวมลา / อื่นๆ', leaveDays],
+        [],
+        ['หมายเหตุ: นับวันทำการจันทร์–ศุกร์ ไม่หักวันหยุดนักขัตฤกษ์ และนับเฉพาะวันที่อยู่ในช่วงเวลาที่เลือก']
+      ], [34, 16, 12]);
+
+      // แผ่นงาน: รายบุคคล (เฉพาะเลือก "ทุกคน")
+      if (all) {
+        const people = [...new Set([...state.staff, ...data.leaves.map(l => l.person)])];
+        addSheet('รายบุคคล', [
+          ['ชื่อ-สกุล', 'กิจกรรม (ครั้ง)', 'ไปราชการ (วัน)', 'ลา/อื่นๆ (วัน)'],
+          ...people.map(n => {
+            const ls = data.leaves.filter(l => l.person === n);
+            return [n, data.activities.filter(a => splitPersons(a.person).includes(n)).length, sumDays(ls.filter(l => l.gov)), sumDays(ls.filter(l => !l.gov))];
+          })
+        ], [34, 14, 14, 14]);
+      }
+
+      // แผ่นงาน: กิจกรรม
+      addSheet('กิจกรรม', [
+        ['ลำดับ', 'วันที่', 'เวลา', 'ชื่อกิจกรรม', 'ประเภท', 'รายละเอียด', 'ผู้เกี่ยวข้อง'],
+        ...data.activities.map((a, i) => [
+          i + 1,
+          a.startDate === a.endDate ? beDate(a.startDate) : `${beDate(a.startDate)} – ${beDate(a.endDate)}`,
+          `${a.startTime}–${a.endTime}`, a.title, a.group, a.details, a.person
+        ])
+      ], [6, 22, 12, 36, 18, 36, 44]);
+
+      // แผ่นงาน: ลา / ไปราชการ
+      addSheet('ลา-ไปราชการ', [
+        ['ลำดับ', 'ชื่อ-สกุล', 'ประเภท', 'ตั้งแต่', 'ถึง', 'วันทำการ (ในช่วงที่เลือก)', 'หมายเหตุ'],
+        ...data.leaves.map((l, i) => [i + 1, l.person, l.type, beDate(l.startDate), beDate(l.endDate), l.days, l.note])
+      ], [6, 30, 18, 12, 12, 14, 36]);
+
+      const clean = s => String(s).replace(/[\\/:*?"<>|]/g, '').trim();
+      const dash = ds => beDate(ds).split('/').join('-');
+      const file = `รายงาน_${clean(data.person)}_${dash(data.startDate)}_ถึง_${dash(data.endDate)}.xlsx`;
+      XLSX.writeFile(wb, file);
+      return file;
     }
 
     // ==========================================
